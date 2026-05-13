@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TONY收支財務儀表板 | TONY STUDIO</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Google API Client -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        slate: { 750: '#2d3748', 850: '#1a202c' },
+                        teal: { 450: '#2dd4bf' }
+                    },
+                    fontFamily: { sans: ['Inter', 'Microsoft JhengHei', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .modal { transition: opacity 0.2s ease-in-out; }
+        .modal.hidden { opacity: 0; pointer-events: none; }
+        .modal.flex { opacity: 1; pointer-events: auto; }
+        button i { pointer-events: none; }
+        
+        /* Professional Report Styling */
+        .prose h1 { color: #1e293b; font-size: 1.6em; border-bottom: 3px solid #2dd4bf; padding-bottom: 0.5em; margin-bottom: 1em; font-weight: 800; }
+        .prose h2 { color: #0f766e; font-size: 1.3em; font-weight: bold; margin-top: 1.5em; margin-bottom: 0.8em; background-color: #f0fdfa; padding: 8px 12px; border-left: 5px solid #2dd4bf; border-radius: 4px; }
+        .prose h3 { color: #334155; font-size: 1.15em; font-weight: bold; margin-top: 1.2em; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px; }
+        .prose p { margin-bottom: 1em; line-height: 1.8; color: #334155; font-size: 1.05em; text-align: justify; }
+        .prose strong { color: #b91c1c; font-weight: 800; background-color: #fff1f2; padding: 0 4px; }
+        .prose ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; color: #475569; }
+        .prose li { margin-bottom: 0.5em; }
+        .prose blockquote { border-left: 5px solid #f59e0b; background-color: #fffbeb; color: #92400e; padding: 15px; margin: 1.5em 0; border-radius: 4px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+        /* Chat Bubbles */
+        .chat-bubble { max-width: 85%; padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; line-height: 1.6; font-size: 0.95em; }
+        .chat-user { background-color: #e0f2fe; color: #0369a1; align-self: flex-end; border-bottom-right-radius: 2px; box-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+        .chat-ai { background-color: #f0fdfa; color: #115e59; align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #ccfbf1; box-shadow: 1px 1px 2px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans h-screen flex overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-800 text-white flex flex-col shadow-2xl z-20">
+        <div class="p-6 border-b border-slate-700 flex items-center gap-3">
+            <img src="https://i.postimg.cc/fT2sQW09/1.png" alt="Logo" class="w-10 h-10 object-contain bg-white rounded-md p-1">
+            <div>
+                <h1 class="font-bold text-lg tracking-wide text-white leading-tight">TONY收支<br>財務儀表板</h1>
+                <p class="text-xs text-slate-200 mt-1">AI Financial Pilot</p>
+            </div>
+        </div>
+        <nav class="flex-1 py-6 px-3 space-y-1" id="main-nav">
+            <button onclick="TONY_APP.switchView('dashboard')" class="nav-item w-full flex items-center gap-3 px-4 py-3 bg-slate-700 rounded-lg text-teal-400 font-medium transition-colors text-left" id="nav-dashboard">
+                <i class="fa-solid fa-chart-line w-5"></i> 財務儀表板
+            </button>
+            <button onclick="TONY_APP.switchView('transactions')" class="nav-item w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition-colors text-left" id="nav-transactions">
+                <i class="fa-solid fa-pen-to-square w-5"></i> 月度資料錄入
+            </button>
+            <button onclick="TONY_APP.switchView('analysis')" class="nav-item w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition-colors text-left" id="nav-analysis">
+                <i class="fa-solid fa-chart-pie w-5"></i> 週期分析報告
+            </button>
+            <button onclick="TONY_APP.switchView('chat')" class="nav-item w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition-colors text-left" id="nav-chat">
+                <i class="fa-solid fa-comments w-5"></i> AI 顧問對話
+            </button>
+            <button onclick="TONY_APP.switchView('settings')" class="nav-item w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition-colors text-left" id="nav-settings">
+                <i class="fa-solid fa-gear w-5"></i> 系統設定
+            </button>
+        </nav>
+        <div class="p-4 border-t border-slate-700">
+            <div class="bg-slate-700/50 rounded-xl p-4 flex items-center gap-3 backdrop-blur-sm">
+                <img src="https://i.postimg.cc/Gh8Zt7SX/S_56844323.jpg" class="w-12 h-12 rounded-full border-2 border-teal-500 object-cover shadow-lg">
+                <div>
+                    <p class="text-sm font-bold text-white">TONY 楊文澤</p>
+                    <p class="text-xs text-teal-400">AI 資深顧問</p>
+                </div>
+            </div>
+            <div class="mt-4 text-[10px] text-slate-500 text-center">© 2026 TONY STUDIO.<br>楊文澤顧問設計. All Rights Reserved.</div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+        <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-8 shadow-sm z-10">
+            <h2 id="page-title" class="text-xl font-bold text-slate-700">財務儀表板</h2>
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="flex h-2.5 w-2.5 relative">
+                        <span id="api-status-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span id="api-status-dot" class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                    </span>
+                    <span id="api-status-text" class="text-slate-500">Gemini 未連線</span>
+                </div>
+                <div class="h-6 w-px bg-slate-200"></div>
+                <div class="flex items-center gap-2 text-sm font-medium">
+                    <i class="fa-brands fa-google text-slate-400"></i>
+                    <span id="sheet-indicator" class="inline-block h-2.5 w-2.5 rounded-full bg-slate-300 mr-1"></span>
+                    <span id="sheet-status" class="text-slate-500">本機模式</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <div id="content-area" class="flex-1 overflow-y-auto bg-slate-50 p-8 relative">
+            
+            <!-- 1. DASHBOARD -->
+            <div id="view-dashboard" class="page-view space-y-6">
+                <!-- Dashboard Filter -->
+                <div class="flex flex-wrap items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm gap-4">
+                    <div class="flex items-end gap-4">
+                         <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">維度</label>
+                            <select id="dash-scope" class="bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm w-32 focus:ring-2 focus:ring-teal-500 outline-none" onchange="TONY_APP.updateDashPicker()">
+                                <option value="month">月報</option>
+                                <option value="quarter">季報</option>
+                                <option value="half">半年報</option>
+                                <option value="year">年報</option>
+                            </select>
+                        </div>
+                        <div id="dash-picker-container">
+                            <!-- Dynamic -->
+                        </div>
+                    </div>
+                    <div class="text-right">
+                         <p class="text-xs text-slate-400" id="dash-range-label">統計範圍: 載入中...</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-teal-500"><p class="text-sm text-slate-500 font-medium">期間總收入</p><p class="text-2xl font-bold text-slate-800 mt-2" id="dash-income">NT$ 0</p></div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-rose-500"><p class="text-sm text-slate-500 font-medium">現金支出</p><p class="text-2xl font-bold text-slate-800 mt-2" id="dash-expense-cash">NT$ 0</p></div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-amber-500"><p class="text-sm text-slate-500 font-medium">信用卡支出(日常固定)</p><p class="text-2xl font-bold text-slate-800 mt-2" id="dash-expense-credit">NT$ 0</p></div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-500"><p class="text-sm text-slate-500 font-medium">信用卡支出(AI訂閱)</p><p class="text-2xl font-bold text-slate-800 mt-2" id="dash-ai">NT$ 0</p></div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-slate-700"><p class="text-sm text-slate-500 font-medium">現金結餘 (Cash Flow)</p><p class="text-2xl font-bold text-slate-800 mt-2" id="dash-net">NT$ 0</p></div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-96">
+                    <!-- Structure Chart -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col">
+                        <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                            <h3 class="font-bold text-slate-700">收支結構分析</h3>
+                            <div class="flex flex-wrap gap-1 bg-slate-100 rounded p-1">
+                                <button onclick="TONY_APP.toggleStructure('income')" id="btn-struct-inc" class="px-2 py-1 text-xs rounded font-bold bg-white shadow text-teal-600">收入</button>
+                                <button onclick="TONY_APP.toggleStructure('expense')" id="btn-struct-exp" class="px-2 py-1 text-xs rounded font-medium text-slate-500 hover:text-slate-700">現金支出</button>
+                                <button onclick="TONY_APP.toggleStructure('cc_daily')" id="btn-struct-cc" class="px-2 py-1 text-xs rounded font-medium text-slate-500 hover:text-slate-700">信用卡(日常)</button>
+                                <button onclick="TONY_APP.toggleStructure('cc_ai')" id="btn-struct-ai" class="px-2 py-1 text-xs rounded font-medium text-slate-500 hover:text-slate-700">信用卡(AI)</button>
+                            </div>
+                        </div>
+                        <div class="flex-1 relative"><canvas id="chart-structure"></canvas></div>
+                    </div>
+                    <!-- Trend Chart -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col">
+                        <h3 class="font-bold text-slate-700 mb-4">財務趨勢 (含現金流)</h3>
+                        <div class="flex-1 relative"><canvas id="chart-trend"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. TRANSACTIONS -->
+            <div id="view-transactions" class="page-view hidden space-y-6">
+                <!-- AI Smart Input -->
+                <div class="bg-gradient-to-r from-teal-50 to-white p-6 rounded-xl shadow-sm border border-teal-100 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 -mt-2 -mr-2 w-16 h-16 bg-teal-100 rounded-full opacity-50 blur-xl"></div>
+                    <h3 class="font-bold text-lg text-teal-800 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-teal-500"></i> AI 智慧記帳
+                    </h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="ai-input-text" class="flex-1 border border-slate-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none shadow-sm" placeholder="輸入例如：昨天領薪水 85000">
+                        <button onclick="TONY_APP.smartParse()" id="btn-smart-parse" class="bg-teal-600 hover:bg-teal-500 text-white px-6 py-2 rounded-lg font-bold shadow-md transition-all flex items-center gap-2 whitespace-nowrap">
+                            <span>✨ 解析</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h3 class="font-bold text-lg text-slate-700" id="form-title">資料錄入</h3>
+                        <button onclick="TONY_APP.clearForm()" id="btn-cancel-edit" class="hidden text-xs text-red-500 hover:underline">取消編輯</button>
+                    </div>
+                    <form id="transaction-form" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end" onsubmit="TONY_APP.handleFormSubmit(event)">
+                        <input type="hidden" id="t-id">
+                        <div class="md:col-span-2"><label class="block text-xs font-bold text-slate-500 mb-1">月份</label><input type="month" id="t-date" required class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm"></div>
+                        <div class="md:col-span-5">
+                            <label class="block text-xs font-bold text-slate-500 mb-1 flex justify-between">收支項目 (自動對應類別)<button type="button" onclick="TONY_APP.openCategoryModal()" class="text-teal-600 hover:text-teal-800 text-[10px] underline"><i class="fa-solid fa-plus-circle"></i> 管理項目</button></label>
+                            <select id="t-unified-category" required class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none" onchange="TONY_APP.handleCategoryChange()"><option value="" disabled selected>-- 請選擇項目 --</option></select>
+                            <input type="hidden" id="t-type">
+                        </div>
+                        <div class="md:col-span-2"><label class="block text-xs font-bold text-slate-500 mb-1">金額 (TWD)</label><input type="number" id="t-amount" min="0" required class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm" placeholder="$$$"></div>
+                        <div class="md:col-span-2"><label class="block text-xs font-bold text-slate-500 mb-1">備註</label><input type="text" id="t-note" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm" placeholder="說明..."></div>
+                        <div class="md:col-span-1"><button type="submit" id="btn-submit-trans" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded"><i class="fa-solid fa-plus"></i></button></div>
+                    </form>
+                </div>
+
+                <div class="flex flex-wrap gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200 items-end shadow-sm">
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">篩選月份</label><input type="month" id="filter-month" class="bg-white border border-slate-300 rounded px-3 py-1.5 text-sm" onchange="TONY_APP.renderTable()"></div>
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">篩選類別</label><select id="filter-type" class="bg-white border border-slate-300 rounded px-3 py-1.5 text-sm w-32" onchange="TONY_APP.renderTable()"><option value="ALL">全部顯示</option><option value="I">收入</option><option value="CE">現金支出</option><option value="CC">信用卡(日常)</option><option value="AI">信用卡(AI)</option></select></div>
+                    <div class="flex-1 text-right"><button onclick="TONY_APP.clearFilters()" class="text-xs text-slate-400 hover:text-slate-600 underline">顯示全部</button></div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="overflow-x-auto"><table class="w-full text-sm text-left text-slate-600"><thead class="bg-slate-50 text-slate-700 uppercase font-bold text-xs"><tr><th class="px-6 py-3">月份</th><th class="px-6 py-3">類型</th><th class="px-6 py-3">項目</th><th class="px-6 py-3">備註</th><th class="px-6 py-3 text-right">金額</th><th class="px-6 py-3 text-center">操作</th></tr></thead><tbody id="transaction-table-body" class="divide-y divide-slate-100"></tbody></table></div>
+                </div>
+            </div>
+
+            <!-- 3. ANALYSIS -->
+            <div id="view-analysis" class="page-view hidden space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <div class="flex flex-wrap justify-between items-start gap-6">
+                        <div class="flex-1 min-w-[300px]">
+                            <h3 class="font-bold text-lg text-slate-800 mb-2">週期分析報告</h3>
+                            <!-- Same Logic as Dashboard -->
+                            <div class="flex gap-4 mb-4 items-end">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 mb-1">分析維度</label>
+                                    <select id="analysis-scope" class="bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm w-32 focus:ring-2 focus:ring-teal-500 outline-none" onchange="TONY_APP.updateAnalysisPicker()">
+                                        <option value="month">月報 (Month)</option>
+                                        <option value="quarter">季報 (Quarter)</option>
+                                        <option value="half">半年報 (Half-Year)</option>
+                                        <option value="year">年報 (Year)</option>
+                                    </select>
+                                </div>
+                                <div id="analysis-picker-container"><label class="block text-xs font-bold text-slate-500 mb-1">選擇期間</label><input type="month" id="analysis-month-picker" class="bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm w-40"></div>
+                            </div>
+                            <div class="mb-2">
+                                <label class="block text-xs font-bold text-slate-500 mb-1">補充背景資訊 (Context)</label>
+                                <textarea id="analysis-context" class="w-full bg-slate-50 border border-slate-300 rounded p-3 text-sm focus:ring-2 focus:ring-teal-500 outline-none h-20" placeholder="例如：1月份因為過年發紅包支出較多..." onchange="TONY_APP.saveReportContext()"></textarea>
+                                <p class="text-[10px] text-slate-400 mt-1">告訴 AI 您的特殊狀況，分析會更精準。</p>
+                            </div>
+                            <div class="flex gap-3 mt-4">
+                                <button onclick="TONY_APP.readAnalysis()" id="btn-read-ai" class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2"><i class="fa-solid fa-volume-high text-teal-600"></i> 聆聽</button>
+                                <button onclick="TONY_APP.exportReport()" class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium"><i class="fa-solid fa-file-word text-blue-600"></i> 匯出</button>
+                                <button onclick="TONY_APP.runAnalysis()" id="btn-analyze" class="bg-teal-500 hover:bg-teal-400 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-md flex-1"><i class="fa-solid fa-brain"></i> 生成分析報告</button>
+                            </div>
+                        </div>
+                        <div class="hidden md:block w-64 bg-teal-50 rounded-xl p-4 border border-teal-100">
+                            <h4 class="text-teal-800 font-bold text-sm mb-2"><i class="fa-solid fa-lightbulb"></i> 分析提示</h4>
+                            <ul class="text-xs text-teal-700 space-y-2 list-disc pl-4"><li><strong>月/季/年報</strong> 切換，查看不同週期的財務健康度。</li><li>若有<strong>信貸、獎金</strong>等，請務必補充說明，AI 才能給出精準建議。</li></ul>
+                        </div>
+                    </div>
+                </div>
+                <div id="ai-result-container" class="bg-white p-10 rounded-xl shadow-sm border border-slate-100 min-h-[400px]">
+                    <div id="ai-empty" class="h-full flex flex-col items-center justify-center text-slate-400 py-20"><i class="fa-solid fa-robot text-6xl mb-4 text-slate-200"></i><p>請選擇維度並開始分析。</p></div>
+                    <div id="ai-loading" class="hidden h-full flex flex-col items-center justify-center py-20"><div class="loader mb-4"></div><p class="text-slate-600 animate-pulse">AI 顧問正在調閱歷史帳本...</p></div>
+                    <div id="ai-content" class="hidden prose prose-slate max-w-none"></div>
+                </div>
+            </div>
+
+            <!-- 4. AI CHAT -->
+            <div id="view-chat" class="page-view hidden h-full flex flex-col">
+                <div class="bg-white p-4 border-b border-slate-200 flex justify-between items-center shadow-sm z-10">
+                    <div><h3 class="font-bold text-lg text-slate-700">AI 財務顧問 Chatbot</h3><p class="text-xs text-slate-500">我可以存取您的所有歷史帳務，請隨意提問。</p></div>
+                    <button onclick="TONY_APP.clearChat()" class="text-slate-400 hover:text-red-500 text-sm"><i class="fa-solid fa-trash"></i> 清除對話</button>
+                </div>
+                <div id="chat-history" class="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50">
+                    <div class="flex flex-col space-y-2"><div class="chat-bubble chat-ai">嗨！我是 TONY 的 AI 財務助手。我已經讀取了您的記帳資料。您可以問我：「去年總共存了多少錢？」或「我的一月支出為什麼這麼高？」</div></div>
+                </div>
+                <div class="p-4 bg-white border-t border-slate-200">
+                    <div class="flex gap-2">
+                        <input type="text" id="chat-input" class="flex-1 border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-teal-500 outline-none" placeholder="輸入您的問題..." onkeypress="if(event.key==='Enter') TONY_APP.sendChatMessage()">
+                        <button onclick="TONY_APP.sendChatMessage()" id="btn-chat-send" class="bg-teal-600 text-white px-6 py-2 rounded-lg hover:bg-teal-500"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. SETTINGS -->
+            <div id="view-settings" class="page-view hidden max-w-2xl mx-auto space-y-6">
+                <!-- API Setup -->
+                <div class="bg-white p-8 rounded-xl shadow-md border border-slate-100">
+                    <h3 class="font-bold text-xl text-slate-800 mb-6 flex items-center gap-2"><i class="fa-solid fa-key text-teal-500"></i> 系統連線設定</h3>
+                    <div class="mb-6"><label class="block text-sm font-bold text-slate-700 mb-2">Gemini API Key</label><div class="flex gap-2"><input type="password" id="input-api-key" class="flex-1 bg-slate-50 border border-slate-300 rounded px-4 py-2 text-sm"><button onclick="TONY_APP.saveApiKey()" class="bg-slate-800 text-white px-4 py-2 rounded text-sm">儲存</button></div></div>
+                    <div class="border-t border-slate-100 pt-6">
+                        <h4 class="font-bold text-slate-700 mb-2">Google Sheets 整合</h4>
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4">
+                             <div class="flex justify-between items-center mb-2">
+                                <label class="block text-sm font-bold text-slate-700">OAuth Client ID</label>
+                                <button onclick="TONY_APP.openGuideModal()" class="text-xs text-teal-600 hover:underline"><i class="fa-solid fa-circle-question"></i> 如何設定?</button>
+                             </div>
+                             <div class="flex gap-2 mb-4"><input type="text" id="input-client-id" class="flex-1 bg-white border border-slate-300 rounded px-4 py-2 text-sm"><button onclick="TONY_APP.saveClientId()" class="bg-slate-800 text-white px-4 py-2 rounded text-sm">儲存</button></div>
+                             <div class="flex gap-2"><button onclick="TONY_APP.handleGAuthClick()" id="g-auth-btn" class="bg-blue-600 text-white px-4 py-2 rounded text-sm"><i class="fa-brands fa-google"></i> 登入 Google</button><button onclick="TONY_APP.handleSignoutClick()" id="g-signout-btn" class="hidden bg-slate-200 text-slate-700 px-4 py-2 rounded text-sm">登出</button></div>
+                             <div id="sheet-picker-area" class="mt-4 hidden">
+                                <p class="text-xs text-slate-500 mb-1">若無法自動讀取，請貼上 ID 手動載入：</p>
+                                <div class="flex gap-2"><input type="text" id="input-sheet-id" class="flex-1 bg-slate-100 border border-slate-300 rounded px-4 py-2 text-xs" placeholder="Google Sheet ID"><button onclick="TONY_APP.manualLoad()" class="bg-teal-500 text-white px-4 py-2 rounded text-sm whitespace-nowrap">載入/搜尋</button></div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Backup & Reset -->
+                <div class="bg-white p-8 rounded-xl shadow-md border border-slate-100">
+                    <h3 class="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-database text-teal-500"></i> 資料備份與管理 (本地)</h3>
+                    <p class="text-sm text-slate-500 mb-4">在 Google 雲端設定成功前，您可手動將資料下載至電腦作為保險。</p>
+                    <div class="flex gap-4 mb-6">
+                        <button onclick="TONY_APP.exportLocalData()" class="bg-teal-600 text-white px-4 py-2 rounded text-sm hover:bg-teal-500"><i class="fa-solid fa-download"></i> 匯出備份 (JSON)</button>
+                        <label class="bg-slate-200 text-slate-700 px-4 py-2 rounded text-sm hover:bg-slate-300 cursor-pointer">
+                            <i class="fa-solid fa-upload"></i> 匯入還原
+                            <input type="file" id="import-file" accept=".json" class="hidden" onchange="TONY_APP.importLocalData(event)">
+                        </label>
+                    </div>
+                    <div class="border-t border-slate-100 pt-4">
+                        <button onclick="TONY_APP.resetData()" class="text-red-500 text-sm hover:text-red-700 font-bold flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i> 刪除所有本地數據 (Reset)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <div id="modal-category" class="modal hidden fixed inset-0 flex items-center justify-center z-50">
+        <div class="absolute inset-0 bg-slate-900 opacity-50 z-40" onclick="TONY_APP.closeCategoryModal()"></div>
+        <div class="bg-white w-11/12 md:max-w-md mx-auto rounded shadow-lg z-50 relative p-6">
+            <div class="flex justify-between items-center pb-3 border-b mb-4">
+                <p class="text-lg font-bold text-slate-800">新增項目類別</p>
+                <div class="cursor-pointer" onclick="TONY_APP.closeCategoryModal()"><i class="fa-solid fa-xmark text-slate-500 hover:text-red-500"></i></div>
+            </div>
+            <div class="flex gap-2 mb-4">
+                <select id="modal-cat-type" class="bg-slate-50 border border-slate-300 text-sm rounded px-2 py-1 w-1/3"><option value="I">收入</option><option value="CE">現金</option><option value="CC">信用卡</option><option value="AI">AI訂閱</option></select>
+                <input type="text" id="modal-cat-name" placeholder="新項目名稱" class="border border-slate-300 rounded px-2 py-1 w-full text-sm">
+                <button onclick="TONY_APP.addCustomCategory()" class="bg-teal-500 text-white rounded px-3 py-1 text-sm">新增</button>
+            </div>
+            <p class="text-xs text-slate-400 mb-2">現有類別列表 (僅供檢視)：</p>
+            <div id="modal-cat-list" class="h-48 overflow-y-auto border border-slate-100 rounded p-2 bg-slate-50 space-y-1"></div>
+        </div>
+    </div>
+    
+    <!-- Setup Guide Modal -->
+    <div id="modal-guide" class="modal hidden fixed inset-0 flex items-center justify-center z-50">
+        <div class="absolute inset-0 bg-slate-900 opacity-50 z-40" onclick="TONY_APP.closeGuideModal()"></div>
+        <div class="bg-white w-11/12 md:max-w-xl mx-auto rounded-xl shadow-lg z-50 relative overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-slate-800 p-4 flex justify-between items-center">
+                <h3 class="text-white font-bold"><i class="fa-solid fa-book-open mr-2"></i> Google OAuth 設定教學</h3>
+                <button onclick="TONY_APP.closeGuideModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto prose text-sm text-slate-600">
+                <ol class="list-decimal pl-5 space-y-4">
+                    <li><strong>為何在預覽畫面會失敗？</strong><br>Google 基於安全考量，拒絕了目前隨機變動的預覽網址。要能正常使用，必須將程式放在固定的網域。</li>
+                    <li><strong>解決方案 A：個人電腦使用</strong><br>將程式碼存為 <code>.html</code> 檔，並用 VS Code 的 Live Server 開啟（網址通常是 <code>http://localhost:5500</code>）。</li>
+                    <li><strong>解決方案 B：發布到 GitHub</strong><br>將程式推送到 GitHub 並開啟 Pages 取得網址 (例如 <code>https://您的帳號.github.io/</code>，注意結尾不可有斜線)。</li>
+                    <li><strong>註冊網址</strong><br>前往 GCP Console -> OAuth 同意畫面 -> 建立憑證。在<strong>「已授權的 JavaScript 來源」</strong>填入上述取得的網址，儲存後即可順利登入！</li>
+                    <li class="bg-teal-50 p-2 rounded border-l-4 border-teal-400">
+                        <strong>如何取得 Sheet ID?</strong><br>
+                        若系統未自動抓取，請打開您的 Google 試算表，複製網址中 <code>/d/</code> 與 <code>/edit</code> 之間的字串。
+                    </li>
+                </ol>
+            </div>
+            <div class="bg-slate-50 p-4 text-right border-t"><button onclick="TONY_APP.closeGuideModal()" class="bg-slate-700 text-white px-4 py-2 rounded hover:bg-slate-600">我知道了</button></div>
+        </div>
+    </div>
+
+    <!-- Export Template removed from HTML as it is generated dynamically -->
+
+    <script>
+        const TONY_APP = {
+            data: { 
+                transactions: [], categories: {}, reports: {}, apiKey: '', clientId: '', 
+                spreadsheetId: '', isGoogleMode: false, lastAnalysisText: '', chatHistory: [], 
+                chartStructMode: 'income', sheetName: '' 
+            },
+            defaults: {
+                'I': ['學校教學薪資', '專案輔導及講師收入', '其他額外收入', '采霓社會住宅補助'],
+                'CE': ['星文中信', '文澤中信', '文澤中信信貸', '上海商銀房貸', '房租', '星文國保', '全家健保', 'TAPSS月費', '醫療費', '一般支出', '網路購物', '其他生活開支'],
+                'CC': ['電費', '水費', '瓦斯費', '文則遠傳電信費', '星文台哥大電信費', '家裡電信費', '網路APP費用', '搭車及租車費', '出差住宿費', '其他'],
+                'AI': ['Apple Music', 'Netflix', 'Google driver', 'icloude', 'gemini', 'ChatGPT', 'Office 365', '剪映', 'Kling AI', '美圖秀秀', 'Canva', 'Enlight']
+            },
+            types: { 'I': '收入', 'CE': '現金支出', 'CC': '信用卡支出(日常固定項目)', 'AI': '信用卡支出(AI訂閱)' },
+            scopes: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive',
+
+            // --- ALL FUNCTIONS DEFINED HERE ---
+            setupDates: function() {
+                const now = new Date(); const s = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+                ['t-date','dash-month-picker','filter-month','analysis-month-picker'].forEach(id => { const el = document.getElementById(id); if(el && !el.value) el.value = s; });
+            },
+            switchView: function(id) {
+                document.querySelectorAll('.page-view').forEach(e => e.classList.add('hidden')); document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('bg-slate-700', 'text-teal-400'));
+                document.getElementById(`view-${id}`).classList.remove('hidden'); document.getElementById(`nav-${id}`).classList.add('bg-slate-700', 'text-teal-400');
+                if(id === 'transactions') this.renderTable(); if(id === 'dashboard') this.renderDashboard(); if(id === 'chat') { document.getElementById('chat-input').focus(); }
+            },
+            loadState: function() {
+                this.data.apiKey = localStorage.getItem('gemini_api_key') || '';
+                this.data.clientId = localStorage.getItem('google_client_id') || '';
+                if(this.data.clientId) document.getElementById('input-client-id').value = this.data.clientId;
+                const cats = localStorage.getItem('custom_categories'); this.data.categories = cats ? JSON.parse(cats) : JSON.parse(JSON.stringify(this.defaults));
+                const trans = localStorage.getItem('finance_data'); this.data.transactions = trans ? JSON.parse(trans).map(t => ({ id: String(t.id), date: t.date, type: t.type, category: t.category, amount: Number(t.amount) || 0, note: t.note || '' })) : [];
+                const reps = localStorage.getItem('finance_reports'); this.data.reports = reps ? JSON.parse(reps) : {};
+            },
+
+            // THE INIT FUNCTION
+            init: function() {
+                try {
+                    this.loadState(); 
+                    this.setupDates();
+                    this.renderUnifiedSelect(); this.renderDashboard(); this.renderTable(); this.checkApiStatus(); 
+                    this.updateDashPicker(); this.updateAnalysisPicker();
+                    document.getElementById('modal-cat-type').addEventListener('change', () => this.renderCategoryList());
+                    
+                    if (typeof gapi !== 'undefined') { gapi.load('client', () => { this.gapiInited = true; }); }
+                    if (typeof google !== 'undefined') { this.gisInited = true; if(typeof this.checkGoogleReady === 'function') this.checkGoogleReady(); }
+                } catch(e) {
+                    console.error("Initialization Error:", e);
+                }
+            },
+
+            saveData: function() {
+                localStorage.setItem('finance_data', JSON.stringify(this.data.transactions));
+                localStorage.setItem('custom_categories', JSON.stringify(this.data.categories));
+                this.renderDashboard(); this.renderTable();
+            },
+            saveReports: function() { localStorage.setItem('finance_reports', JSON.stringify(this.data.reports)); },
+
+            // --- LOCAL BACKUP SYSTEM ---
+            exportLocalData: function() {
+                const dump = { transactions: this.data.transactions, categories: this.data.categories, reports: this.data.reports };
+                const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
+                const a = document.createElement('a'); a.href = URL.createObjectURL(blob); 
+                a.download = `TONY_Finance_Backup_${new Date().toISOString().split('T')[0]}.json`; a.click();
+            },
+            importLocalData: function(e) {
+                const file = e.target.files[0]; if(!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const dump = JSON.parse(event.target.result);
+                        if(dump.transactions) this.data.transactions = dump.transactions;
+                        if(dump.categories) this.data.categories = dump.categories;
+                        if(dump.reports) this.data.reports = dump.reports;
+                        this.saveData(); this.saveReports();
+                        alert("備份資料已成功還原！"); location.reload();
+                    } catch(err) { alert("檔案格式錯誤，無法還原！"); }
+                };
+                reader.readAsText(file);
+            },
+
+            // --- DATE HELPERS ---
+            updateDashPicker: function() {
+                const scope = document.getElementById('dash-scope').value; const container = document.getElementById('dash-picker-container');
+                container.innerHTML = '';
+                const picker = this.createPeriodPicker(scope, 'dash');
+                container.appendChild(picker);
+                this.renderDashboard();
+            },
+            updateAnalysisPicker: function() {
+                const scope = document.getElementById('analysis-scope').value; const container = document.getElementById('analysis-picker-container');
+                container.innerHTML = '<label class="block text-xs font-bold text-slate-500 mb-1">選擇期間</label>';
+                const picker = this.createPeriodPicker(scope, 'analysis');
+                container.appendChild(picker);
+                this.loadSavedReport();
+            },
+            createPeriodPicker: function(scope, prefix) {
+                let input;
+                const onChange = prefix === 'dash' ? () => this.renderDashboard() : () => this.loadSavedReport();
+                if(scope === 'month') {
+                    input = document.createElement('input'); input.type='month'; input.id=`${prefix}-month-picker`;
+                    const now = new Date(); input.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+                    input.onchange = onChange;
+                } else if(scope === 'year') {
+                    input = document.createElement('select'); input.id=`${prefix}-year-picker`;
+                    const y = new Date().getFullYear();
+                    for(let i=y; i>=y-5; i--) { let op=document.createElement('option'); op.value=i; op.innerText=i+'年'; input.appendChild(op); }
+                    input.onchange = onChange;
+                } else {
+                    const wrap = document.createElement('div'); wrap.className = 'flex gap-2';
+                    const ySel = document.createElement('select'); ySel.id=`${prefix}-year-picker`;
+                    const y = new Date().getFullYear();
+                    for(let i=y; i>=y-5; i--) { let op=document.createElement('option'); op.value=i; op.innerText=i+'年'; ySel.appendChild(op); }
+                    const pSel = document.createElement('select'); pSel.id=`${prefix}-period-picker`;
+                    if(scope==='quarter') ['Q1','Q2','Q3','Q4'].forEach(q=>{ let op=document.createElement('option'); op.value=q; op.innerText=q; pSel.appendChild(op); });
+                    else { let o1=document.createElement('option'); o1.value='H1'; o1.innerText='上半年'; pSel.appendChild(o1); let o2=document.createElement('option'); o2.value='H2'; o2.innerText='下半年'; pSel.appendChild(o2); }
+                    ySel.className = pSel.className = "bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm w-24 outline-none";
+                    ySel.onchange = pSel.onchange = onChange;
+                    wrap.appendChild(ySel); wrap.appendChild(pSel); return wrap;
+                }
+                input.className = "bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm w-40 outline-none";
+                return input;
+            },
+            
+            getFilterData: function(prefix) {
+                const scope = document.getElementById(`${prefix}-scope`).value; let label = "", filtered = [];
+                if(scope === 'month') {
+                    const el = document.getElementById(`${prefix}-month-picker`);
+                    if(el) { const m = el.value; label = m; filtered = this.data.transactions.filter(t => t.date === m); }
+                } else if(scope === 'year') {
+                    const y = document.getElementById(`${prefix}-year-picker`).value; label = y + "年";
+                    filtered = this.data.transactions.filter(t => t.date.startsWith(y));
+                } else {
+                    const y = document.getElementById(`${prefix}-year-picker`).value;
+                    const p = document.getElementById(`${prefix}-period-picker`).value; label = `${y} ${p}`;
+                    const qMap = { 'Q1':['01','02','03'], 'Q2':['04','05','06'], 'Q3':['07','08','09'], 'Q4':['10','11','12'] };
+                    const hMap = { 'H1':['01','02','03','04','05','06'], 'H2':['07','08','09','10','11','12'] };
+                    const months = scope === 'quarter' ? qMap[p] : hMap[p];
+                    filtered = this.data.transactions.filter(t => { const [tY, tM] = t.date.split('-'); return tY == y && months.includes(tM); });
+                }
+                return { label, data: filtered };
+            },
+
+            // --- DASHBOARD ---
+            renderDashboard: function() {
+                if(!document.getElementById('dash-picker-container').firstChild) return;
+                const { label, data } = this.getFilterData('dash');
+                document.getElementById('dash-range-label').innerText = `統計範圍: ${label}`;
+                let income=0, cash=0, credit=0, ai=0;
+                data.forEach(t => { const v = Number(t.amount); if(t.type === 'I') income += v; else if(t.type === 'CE') cash += v; else if(t.type === 'CC') credit += v; else if(t.type === 'AI') ai += v; });
+                document.getElementById('dash-income').innerText = `NT$ ${income.toLocaleString()}`; document.getElementById('dash-expense-cash').innerText = `NT$ ${cash.toLocaleString()}`; document.getElementById('dash-expense-credit').innerText = `NT$ ${credit.toLocaleString()}`; document.getElementById('dash-ai').innerText = `NT$ ${ai.toLocaleString()}`; document.getElementById('dash-net').innerText = `NT$ ${(income - cash).toLocaleString()}`;
+                const netEl = document.getElementById('dash-net'); netEl.className = `text-2xl font-bold mt-2 ${(income - cash) >= 0 ? 'text-teal-600' : 'text-red-500'}`;
+                this.updateCharts(data, income, cash+credit+ai);
+            },
+
+            toggleStructure: function(mode) {
+                this.data.chartStructMode = mode;
+                const btns = ['inc', 'exp', 'cc', 'ai'];
+                btns.forEach(b => {
+                    const btn = document.getElementById(`btn-struct-${b}`);
+                    let active = false;
+                    if(mode === 'income' && b === 'inc') active = true; if(mode === 'expense' && b === 'exp') active = true; if(mode === 'cc_daily' && b === 'cc') active = true; if(mode === 'cc_ai' && b === 'ai') active = true;
+                    if(active) { btn.className = "px-2 py-1 text-xs rounded font-bold bg-white shadow text-teal-600"; if(mode !== 'income') btn.className = btn.className.replace('text-teal-600', 'text-rose-600'); } else { btn.className = "px-2 py-1 text-xs rounded font-medium text-slate-500 hover:text-slate-700"; }
+                });
+                this.renderDashboard(); 
+            },
+
+            updateCharts: function(data, totalIncome, totalExpense) {
+                const ctx1 = document.getElementById('chart-structure'); if(this.chart1) this.chart1.destroy();
+                const mode = this.data.chartStructMode; const cats = {}; let filteredData = [];
+                if (mode === 'income') filteredData = data.filter(t => t.type === 'I'); else if (mode === 'expense') filteredData = data.filter(t => t.type === 'CE'); else if (mode === 'cc_daily') filteredData = data.filter(t => t.type === 'CC'); else if (mode === 'cc_ai') filteredData = data.filter(t => t.type === 'AI');
+                filteredData.forEach(t => { cats[t.category] = (cats[t.category] || 0) + Number(t.amount); });
+                const colors = ['#2dd4bf', '#38bdf8', '#818cf8', '#a78bfa', '#f472b6', '#fb7185', '#f59e0b', '#fcd34d'];
+                this.chart1 = new Chart(ctx1, { type: 'doughnut', data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: colors, borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } }, tooltip: { callbacks: { label: function(context) { const val = context.raw; const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0); const pct = ((val / total) * 100).toFixed(1) + '%'; return `${context.label}: ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(val)} (${pct})`; } } } } } });
+                const ctx2 = document.getElementById('chart-trend'); if(this.chart2) this.chart2.destroy();
+                const groups = {}; data.forEach(t => { const k = t.date; if(!groups[k]) groups[k] = { inc:0, exp:0 }; if(t.type === 'I') groups[k].inc += t.amount; else groups[k].exp += t.amount; });
+                const sortedKeys = Object.keys(groups).sort();
+                this.chart2 = new Chart(ctx2, { type: 'bar', data: { labels: sortedKeys, datasets: [{ label:'收入', data: sortedKeys.map(k=>groups[k].inc), backgroundColor:'#2dd4bf' }, { label:'支出', data: sortedKeys.map(k=>groups[k].exp), backgroundColor:'#cbd5e1' }] }, options: { responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true}} } });
+            },
+
+            // --- Unified Select & CRUD ---
+            renderUnifiedSelect: function() {
+                const sel = document.getElementById('t-unified-category'); sel.innerHTML = '<option value="" disabled selected>-- 請選擇項目 --</option>';
+                Object.keys(this.types).forEach(typeKey => { const group = document.createElement('optgroup'); group.label = this.types[typeKey]; const items = this.data.categories[typeKey] || []; items.forEach(item => { const opt = document.createElement('option'); opt.value = `${typeKey}|${item}`; opt.innerText = item; group.appendChild(opt); }); sel.appendChild(group); });
+            },
+            handleCategoryChange: function() { const sel = document.getElementById('t-unified-category'); const val = sel.value; if(!val) return; const [type, name] = val.split('|'); document.getElementById('t-type').value = type; },
+            handleFormSubmit: function(e) {
+                e.preventDefault(); const idVal = document.getElementById('t-id').value; const unifiedVal = document.getElementById('t-unified-category').value;
+                if(!unifiedVal) return alert("請選擇收支項目"); const [type, category] = unifiedVal.split('|');
+                const newTrans = { id: idVal ? String(idVal) : String(Date.now()), date: document.getElementById('t-date').value, type: type, category: category, amount: Number(document.getElementById('t-amount').value), note: document.getElementById('t-note').value };
+                if (newTrans.amount < 0) return alert("金額需為正數");
+                if (idVal) { const idx = this.data.transactions.findIndex(t => t.id === String(idVal)); if (idx > -1) { this.data.transactions[idx] = newTrans; if(this.data.isGoogleMode) alert("修改已同步至本地。"); } } else { this.data.transactions.push(newTrans); if(this.data.isGoogleMode) this.syncToCloud(newTrans); }
+                this.saveData(); this.clearForm();
+            },
+            editTransaction: function(id) {
+                const t = this.data.transactions.find(x => x.id === String(id)); if (!t) return;
+                document.getElementById('form-title').innerText = "編輯紀錄"; document.getElementById('t-id').value = t.id; document.getElementById('t-date').value = t.date;
+                const unifiedVal = `${t.type}|${t.category}`; const sel = document.getElementById('t-unified-category'); sel.value = unifiedVal;
+                if(!sel.value) { const opt = document.createElement('option'); opt.value = unifiedVal; opt.innerText = t.category + " (已封存)"; sel.add(opt); sel.value = unifiedVal; }
+                document.getElementById('t-amount').value = t.amount; document.getElementById('t-note').value = t.note;
+                document.getElementById('btn-cancel-edit').classList.remove('hidden'); document.getElementById('btn-submit-trans').innerHTML = '<i class="fa-solid fa-check"></i>';
+                document.getElementById('content-area').scrollTo({top:0, behavior:'smooth'});
+            },
+            clearForm: function() {
+                document.getElementById('transaction-form').reset(); document.getElementById('t-id').value = ''; document.getElementById('t-unified-category').value = "";
+                this.setupDates(); document.getElementById('form-title').innerText = "資料錄入"; document.getElementById('btn-cancel-edit').classList.add('hidden'); document.getElementById('btn-submit-trans').innerHTML = '<i class="fa-solid fa-plus"></i>';
+            },
+            
+            // Guide Modal Logic
+            openGuideModal: function() { document.getElementById('modal-guide').classList.remove('hidden'); document.getElementById('modal-guide').classList.add('flex'); },
+            closeGuideModal: function() { document.getElementById('modal-guide').classList.remove('flex'); document.getElementById('modal-guide').classList.add('hidden'); },
+            openCategoryModal: function() { document.getElementById('modal-category').classList.remove('hidden'); document.getElementById('modal-category').classList.add('flex'); this.renderCategoryList(); },
+            closeCategoryModal: function() { document.getElementById('modal-category').classList.remove('flex'); document.getElementById('modal-category').classList.add('hidden'); this.renderUnifiedSelect(); },
+            renderCategoryList: function() {
+                const type = document.getElementById('modal-cat-type').value; const list = document.getElementById('modal-cat-list'); const cats = this.data.categories[type] || [];
+                if (cats.length === 0) { list.innerHTML = '<div class="text-center text-slate-400 py-4 text-xs">無項目</div>'; return; }
+                let html = ''; cats.forEach((cat, index) => { html += `<div class="flex justify-between items-center bg-slate-50 px-3 py-2 rounded mb-1 border border-slate-100"><span class="text-sm">${cat}</span></div>`; }); list.innerHTML = html;
+            },
+            addCustomCategory: function() {
+                const type = document.getElementById('modal-cat-type').value; const name = document.getElementById('modal-cat-name').value.trim();
+                if(!name) return; if(!this.data.categories[type]) this.data.categories[type] = []; if(this.data.categories[type].includes(name)) return alert("已存在");
+                this.data.categories[type].push(name); this.saveData(); document.getElementById('modal-cat-name').value = ''; this.renderCategoryList();
+            },
+            renderTable: function() {
+                const tbody = document.getElementById('transaction-table-body'); const fMonth = document.getElementById('filter-month').value; const fType = document.getElementById('filter-type').value;
+                let d = [...this.data.transactions].sort((a,b) => b.date.localeCompare(a.date));
+                if(fMonth) d = d.filter(t => t.date === fMonth); if(fType !== 'ALL') d = d.filter(t => t.type === fType);
+                if(d.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-400">無資料</td></tr>'; return; }
+                tbody.innerHTML = d.map(t => {
+                    const style = { 'I':'border-teal-500 bg-teal-50/30', 'CE':'border-rose-500 bg-rose-50/30', 'CC':'border-amber-500 bg-amber-50/30', 'AI':'border-indigo-500 bg-indigo-50/30' }[t.type];
+                    const labelStyle = { 'I':'bg-teal-100 text-teal-700', 'CE':'bg-rose-100 text-rose-700', 'CC':'bg-amber-100 text-amber-700', 'AI':'bg-indigo-100 text-indigo-700' }[t.type];
+                    return `<tr class="hover:bg-white transition-colors border-l-4 ${style}"><td class="px-6 py-4 font-bold text-slate-700">${t.date}</td><td class="px-6 py-4"><span class="px-2 py-1 rounded text-xs font-bold ${labelStyle}">${this.types[t.type]}</span></td><td class="px-6 py-4 font-medium text-slate-700">${t.category}</td><td class="px-6 py-4 text-xs text-slate-500 truncate max-w-[150px]">${t.note || '-'}</td><td class="px-6 py-4 text-right font-mono">NT$ ${Number(t.amount).toLocaleString()}</td><td class="px-6 py-4 text-center flex justify-center gap-3"><button onclick="TONY_APP.editTransaction('${t.id}')" class="text-slate-400 hover:text-teal-600 p-1" title="修改"><i class="fa-solid fa-pen-to-square"></i></button></td></tr>`;
+                }).join('');
+            },
+            
+            // --- Google & Cloud (Robust Init) ---
+            async loadGoogleServices() {
+                return new Promise((resolve, reject) => {
+                    if (typeof gapi === 'undefined') return reject(new Error("GAPI 尚未載入，可能是網路或擋截器問題。"));
+                    gapi.load('client', () => {
+                        gapi.client.load('sheets', 'v4', () => {
+                            gapi.client.load('drive', 'v3', () => {
+                                if (!gapi.client.sheets) {
+                                    return reject(new Error("Google Sheets API 掛載失敗，請檢查網路狀態。"));
+                                }
+                                resolve();
+                            });
+                        });
+                    });
+                });
+            },
+            
+            async getFirstSheetName() {
+                if (this.data.sheetName) return this.data.sheetName;
+                try {
+                    const res = await gapi.client.sheets.spreadsheets.get({ spreadsheetId: this.data.spreadsheetId });
+                    const title = res.result.sheets[0].properties.title;
+                    this.data.sheetName = title;
+                    return title;
+                } catch(e) {
+                    console.error("無法取得工作表名稱", e);
+                    return '工作表1'; // Fallback for Traditional Chinese locale
+                }
+            },
+
+            checkGoogleReady: function() {
+                const cid = localStorage.getItem('google_client_id');
+                if(cid && google && google.accounts) {
+                    this.data.clientId = cid;
+                    this.tokenClient = google.accounts.oauth2.initTokenClient({
+                        client_id: cid, scope: this.scopes,
+                        callback: (resp) => this.handleGoogleCallback(resp)
+                    });
+                }
+            },
+            async handleGoogleCallback(resp) { 
+                if(resp.error) return console.error(resp); 
+                this.data.accessToken = resp.access_token; 
+                try {
+                    await this.loadGoogleServices();
+                    gapi.client.setToken({ access_token: this.data.accessToken });
+                    this.updateGoogleUI(true); 
+                    
+                    const sid = localStorage.getItem('google_sheet_id'); 
+                    if(sid) { 
+                        this.data.spreadsheetId = sid; 
+                        document.getElementById('input-sheet-id').value = sid; 
+                        this.loadSheetData(); 
+                    } else { 
+                        this.findOrCreateSheet(); 
+                    }
+                } catch (e) {
+                    alert("Google 模組載入失敗：" + (e.message || "請檢查網路狀態"));
+                }
+            },
+            updateGoogleUI: function(connected) { const ind = document.getElementById('sheet-indicator'); const txt = document.getElementById('sheet-status'); if(connected) { ind.className = "inline-block h-2.5 w-2.5 rounded-full bg-green-500 mr-1 animate-pulse"; txt.innerText = "雲端連線中"; document.getElementById('g-auth-btn').classList.add('hidden'); document.getElementById('g-signout-btn').classList.remove('hidden'); document.getElementById('sheet-picker-area').classList.remove('hidden'); this.data.isGoogleMode = true; } else { ind.className = "inline-block h-2.5 w-2.5 rounded-full bg-slate-300 mr-1"; txt.innerText = "本機模式"; this.data.isGoogleMode = false; } },
+            handleGAuthClick: function() { 
+                if(!this.tokenClient) this.checkGoogleReady();
+                if(this.tokenClient) { this.tokenClient.requestAccessToken({prompt: 'consent'}); } 
+                else { const cid = localStorage.getItem('google_client_id'); if(!cid) alert("請先輸入並儲存 OAuth Client ID。"); else if (typeof google === 'undefined') alert("Google 服務無法載入，這可能是網路問題或瀏覽器阻擋。請嘗試重新整理。"); else alert("初始化失敗，請確認 Client ID 是否正確並重新整理頁面。"); }
+            },
+            handleSignoutClick: function() { if(this.data.accessToken) google.accounts.oauth2.revoke(this.data.accessToken); this.updateGoogleUI(false); location.reload(); },
+            
+            async manualLoad() {
+                if(!this.data.accessToken) {
+                    alert("請先點擊上方『登入 Google』進行授權！");
+                    return;
+                }
+                const id = document.getElementById('input-sheet-id').value.trim();
+                try {
+                    await this.loadGoogleServices();
+                    gapi.client.setToken({ access_token: this.data.accessToken });
+                    if(id) { 
+                        this.data.spreadsheetId = id; 
+                        localStorage.setItem('google_sheet_id', id); 
+                        this.loadSheetData(); 
+                    } else { 
+                        this.findOrCreateSheet(); 
+                    }
+                } catch(e) {
+                    alert("Google 模組載入失敗：" + (e.message || "請檢查網路狀態"));
+                }
+            },
+            async findOrCreateSheet() {
+                try {
+                    const search = await gapi.client.drive.files.list({q: "name = 'TONY收支財務儀表板_Data' and mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false", fields: 'files(id, name)'});
+                    if(search.result.files.length > 0) {
+                        this.data.spreadsheetId = search.result.files[0].id;
+                        localStorage.setItem('google_sheet_id', this.data.spreadsheetId);
+                        this.loadSheetData();
+                    } else {
+                        const create = await gapi.client.sheets.spreadsheets.create({properties: {title: "TONY收支財務儀表板_Data"}});
+                        this.data.spreadsheetId = create.result.spreadsheetId;
+                        localStorage.setItem('google_sheet_id', this.data.spreadsheetId);
+                        
+                        const sheetTitle = await this.getFirstSheetName();
+                        const values = [["ID", "Date", "Type", "Category", "Amount", "Note"]];
+                        await gapi.client.sheets.spreadsheets.values.update({
+                            spreadsheetId: this.data.spreadsheetId, 
+                            range: `${sheetTitle}!A1`, 
+                            valueInputOption: 'RAW', 
+                            resource: {values: values}
+                        });
+                        alert("已建立新雲端檔案");
+                    }
+                    document.getElementById('input-sheet-id').value = this.data.spreadsheetId;
+                } catch(e) { console.error(e); alert("雲端檔案存取失敗: " + e.message); }
+            },
+            async loadSheetData() {
+                 try {
+                     const sheetTitle = await this.getFirstSheetName();
+                     const res = await gapi.client.sheets.spreadsheets.values.get({
+                         spreadsheetId: this.data.spreadsheetId, 
+                         range: `${sheetTitle}!A2:F`
+                     });
+                     const rows = res.result.values;
+                     if(rows && rows.length > 0) {
+                         this.data.transactions = rows.map((r, i) => {
+                             if(i===0 && r[0]==='ID') return null; // Skip header fallback
+                             return { id: r[0], date: r[1], type: r[2], category: r[3], amount: Number(r[4]), note: r[5] || '' }
+                         }).filter(x=>x);
+                         this.saveData();
+                         alert("雲端資料同步成功！");
+                     }
+                 } catch(e) { console.error(e); alert("讀取失敗: " + e.message); }
+            },
+            async syncToCloud(t) {
+                if(!this.data.spreadsheetId || !this.data.isGoogleMode) return;
+                if(!gapi || !gapi.client || !gapi.client.sheets) {
+                    console.warn("Google Sheets 模組尚未準備好，將先保留於本地端。");
+                    return;
+                }
+                try {
+                    const sheetTitle = await this.getFirstSheetName();
+                    const values = [[t.id, t.date, t.type, t.category, t.amount, t.note]];
+                    await gapi.client.sheets.spreadsheets.values.append({
+                        spreadsheetId: this.data.spreadsheetId, 
+                        range: `${sheetTitle}!A1`, 
+                        valueInputOption: 'USER_ENTERED', 
+                        resource: {values: values}
+                    });
+                } catch(e) { console.error(e); alert("寫入失敗: " + e.message); }
+            },
+
+            // --- AI & OTHER UTILS ---
+            checkApiStatus: function() {
+                if(this.data.apiKey) {
+                    document.getElementById('api-status-text').innerText = "Gemini 已連線"; document.getElementById('api-status-text').classList.replace('text-slate-500', 'text-teal-600');
+                    document.getElementById('api-status-ping').classList.replace('bg-red-400', 'bg-teal-400'); document.getElementById('api-status-dot').classList.replace('bg-red-500', 'bg-teal-500');
+                    document.getElementById('input-api-key').value = this.data.apiKey;
+                }
+            },
+            saveApiKey: function() { const k = document.getElementById('input-api-key').value.trim(); if(k) { localStorage.setItem('gemini_api_key', k); this.data.apiKey = k; this.checkApiStatus(); alert("API Key 已儲存"); } },
+            
+            saveClientId: function() { 
+                const c = document.getElementById('input-client-id').value.trim(); 
+                if(c) { 
+                    localStorage.setItem('google_client_id', c); 
+                    this.data.clientId = c; 
+                    this.checkGoogleReady();
+                    
+                    if(this.tokenClient) {
+                        alert("Client ID 已儲存並初始化成功！您可以點擊「登入 Google」了。");
+                    } else {
+                        alert("Client ID 已儲存。若 Google 元件尚未載入，請稍候或重新整理頁面。");
+                    }
+                } 
+            },
+            
+            resetData: function() { if(confirm("警告：這將徹底清除所有資料！")) { localStorage.removeItem('finance_data'); localStorage.removeItem('custom_categories'); this.data.transactions = []; this.saveData(); alert("已清除。"); location.reload(); } },
+            clearFilters: function() { this.setupDates(); document.getElementById('filter-type').value = 'ALL'; this.renderTable(); },
+            
+            getAnalysisKey: function() {
+                 const scope = document.getElementById('analysis-scope').value;
+                 if(scope === 'month') return document.getElementById('analysis-month-picker').value;
+                 if(scope === 'year') return document.getElementById('analysis-year-picker').value;
+                 return document.getElementById('analysis-year-picker').value + '-' + document.getElementById('analysis-period-picker').value;
+            },
+            loadSavedReport: function() {
+                const key = this.getAnalysisKey();
+                const report = this.data.reports[key];
+                const contextEl = document.getElementById('analysis-context');
+                const contentEl = document.getElementById('ai-content');
+                const emptyEl = document.getElementById('ai-empty');
+                contextEl.value = report ? report.context : '';
+                if(report && report.analysis) {
+                    contentEl.innerHTML = marked.parse(report.analysis);
+                    contentEl.classList.remove('hidden'); emptyEl.classList.add('hidden');
+                    this.data.lastAnalysisText = report.analysis;
+                } else {
+                    contentEl.classList.add('hidden'); emptyEl.classList.remove('hidden');
+                    this.data.lastAnalysisText = '';
+                }
+            },
+            saveReportContext: function() {
+                const key = this.getAnalysisKey();
+                const ctx = document.getElementById('analysis-context').value;
+                if(!this.data.reports[key]) this.data.reports[key] = {};
+                this.data.reports[key].context = ctx;
+                this.saveReports();
+            },
+            
+            async smartParse() {
+                if(!this.data.apiKey) return alert("請輸入 API Key");
+                const text = document.getElementById('ai-input-text').value.trim(); if(!text) return alert("請輸入描述");
+                const btn = document.getElementById('btn-smart-parse'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; btn.disabled = true;
+                const today = new Date().toISOString().split('T')[0];
+                const prompt = `System: Financial parser. Current: ${today}. Categories: ${JSON.stringify(this.data.categories)}. Input: '${text}'. Extract using available categories if close match. Output JSON: {"date":"YYYY-MM", "type":"I/CE/CC/AI", "category":"exact name", "amount": number, "note":"summary"}`;
+                try {
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${this.data.apiKey}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
+                    const data = await res.json();
+                    let jsonStr = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
+                    const result = JSON.parse(jsonStr);
+                    document.getElementById('t-date').value = result.date;
+                    const combinedVal = `${result.type}|${result.category}`;
+                    const sel = document.getElementById('t-unified-category'); sel.value = combinedVal;
+                    if(!sel.value) { const opt = document.createElement('option'); opt.value = combinedVal; opt.innerText = result.category + " (AI新增)"; sel.add(opt); sel.value = combinedVal; }
+                    document.getElementById('t-amount').value = result.amount; document.getElementById('t-note').value = result.note;
+                } catch(e) { alert("解析失敗: " + e.message); } finally { btn.innerHTML = '<span>✨ 解析</span>'; btn.disabled = false; }
+            },
+            async readAnalysis() {
+                if(!this.data.apiKey) return alert("請輸入 API Key");
+                const text = this.data.lastAnalysisText || document.getElementById('ai-content').innerText; if(!text || text.length < 5) return alert("請先執行分析");
+                const btn = document.getElementById('btn-read-ai'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                try {
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${this.data.apiKey}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ contents: [{ parts: [{ text: "請朗讀: " + text.replace(/[#*]/g,'') }] }], generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } } } }) });
+                    const data = await res.json(); const audio = new Audio("data:audio/wav;base64," + data.candidates[0].content.parts[0].inlineData.data); audio.play();
+                } catch(e) { console.error(e); alert("語音失敗"); } finally { btn.innerHTML = '<i class="fa-solid fa-volume-high text-teal-600"></i> ✨ 聆聽'; }
+            },
+            async runAnalysis() {
+                if(!this.data.apiKey) return alert("請輸入 API Key");
+                document.getElementById('ai-loading').classList.remove('hidden'); document.getElementById('ai-empty').classList.add('hidden'); document.getElementById('ai-content').classList.add('hidden');
+                const { label, data } = this.getFilterData('analysis');
+                const context = document.getElementById('analysis-context').value; 
+                const historicalSummary = this.data.transactions.slice(0, 50).map(t => `${t.date} ${t.category}: ${t.amount}`).join('; ');
+                const promptText = `Role: Senior Financial Advisor TONY. Task: Analyze financial data for Period: ${label}. User Context (IMPORTANT): "${context}". Current Data: ${JSON.stringify(data)}. Historical Trace (Last 12 months context): ${historicalSummary}. Requirement: 1. Use # Headers. 2. Analyze Cash Flow (Income vs Cash Expense). 3. Identify Cyclical trends using historical context if applicable. 4. Incorporate User Context into advice. 5. Highlight Warnings in > Blockquotes. 6. Language: Traditional Chinese (Taiwan).`;
+                try {
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.data.apiKey}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] }) });
+                    const json = await res.json(); const text = json.candidates[0].content.parts[0].text; 
+                    const key = this.getAnalysisKey(); if(!this.data.reports[key]) this.data.reports[key] = {};
+                    this.data.reports[key].analysis = text; this.data.reports[key].context = context; this.saveReports();
+                    document.getElementById('ai-loading').classList.add('hidden'); document.getElementById('ai-content').classList.remove('hidden'); document.getElementById('ai-content').innerHTML = marked.parse(text); this.data.lastAnalysisText = text;
+                } catch(e) { alert("Error: " + e.message); document.getElementById('ai-loading').classList.add('hidden'); }
+            },
+            async sendChatMessage() {
+                if(!this.data.apiKey) return alert("請輸入 API Key");
+                const input = document.getElementById('chat-input'); const msg = input.value.trim(); if(!msg) return;
+                const chatHistory = document.getElementById('chat-history'); chatHistory.innerHTML += `<div class="flex flex-col space-y-2"><div class="chat-bubble chat-user">${msg}</div></div>`; input.value = ''; chatHistory.scrollTop = chatHistory.scrollHeight;
+                const context = JSON.stringify(this.data.transactions); 
+                const recentChat = this.data.chatHistory.slice(-10).join('\n');
+                const prompt = `You are TONY's Financial AI. Data: ${context}. History: ${recentChat}. User asks: "${msg}". Answer in Traditional Chinese.`;
+                try {
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.data.apiKey}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
+                    const json = await res.json(); const reply = json.candidates[0].content.parts[0].text;
+                    this.data.chatHistory.push(`User: ${msg}`); this.data.chatHistory.push(`AI: ${reply}`);
+                    chatHistory.innerHTML += `<div class="flex flex-col space-y-2"><div class="chat-bubble chat-ai">${marked.parse(reply)}</div></div>`; chatHistory.scrollTop = chatHistory.scrollHeight;
+                } catch(e) { chatHistory.innerHTML += `<div class="text-red-500 text-xs p-2">Error: ${e.message}</div>`; }
+            },
+            clearChat: function() { document.getElementById('chat-history').innerHTML = '<div class="flex flex-col space-y-2"><div class="chat-bubble chat-ai">記錄已清除。請隨時提問！</div></div>'; this.data.chatHistory = []; },
+            exportReport: function() {
+                if(!this.data.lastAnalysisText && document.getElementById('ai-content').classList.contains('hidden')) return alert("請先分析");
+                const { label } = this.getFilterData('analysis');
+                const content = document.getElementById('ai-content').innerHTML; 
+                
+                // MHTML format for proper encoding in Microsoft Word
+                const html = `
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="----=_NextPart_dummy"
+
+------=_NextPart_dummy
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>財務分析報告</title>
+<style>
+    body { font-family: 'Microsoft JhengHei', sans-serif; } 
+    h1 { color: #1e293b; border-bottom: 2px solid #2dd4bf; } 
+    h2 { background-color: #f0fdfa; color: #0f766e; } 
+    strong { color: #b91c1c; }
+</style>
+</head>
+<body>
+<h1>${label} 財務分析報告</h1>
+${content}
+<br><br><p style='text-align:center;color:#888'>Generated by TONY STUDIO</p>
+</body>
+</html>
+------=_NextPart_dummy--`;
+
+                // Export using application/msword and charset
+                const blob = new Blob([html], { type: 'application/msword;charset=utf-8' });
+                const link = document.createElement("a"); 
+                link.href = window.URL.createObjectURL(blob); 
+                link.download = `Report_${label}.doc`; 
+                document.body.appendChild(link);
+                link.click(); 
+                document.body.removeChild(link);
+            }
+        };
+
+        window.onload = function() { TONY_APP.init(); };
+    </script>
+</body>
+</html>
