@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TONY收支財務儀表板 | AI Financial Pilot</title>
     
     <!-- Tailwind CSS -->
@@ -46,6 +46,7 @@
             }
         }
     </script>
+    
     <style>
         /* Modern Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -251,6 +252,7 @@
                 </div>
             </div>
             
+            <!-- 2. ASSETS -->
             <div id="view-assets" class="page-view hidden animate-fade-in space-y-6 max-w-7xl mx-auto">
                 <div class="bg-gradient-to-r from-indigo-50 to-white p-6 md:p-8 rounded-2xl shadow-sm border border-indigo-100 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div class="absolute top-0 right-0 -mt-8 -mr-8 w-48 h-48 bg-indigo-200 rounded-full opacity-30 blur-3xl pointer-events-none"></div>
@@ -317,6 +319,7 @@
                 </div>
             </div>
 
+            <!-- 3. ESTIMATES -->
             <div id="view-estimates" class="page-view hidden animate-fade-in space-y-6 max-w-7xl mx-auto">
                 <div class="bg-gradient-to-r from-blue-50 to-white p-6 md:p-8 rounded-2xl shadow-sm border border-blue-100 relative overflow-hidden">
                     <div class="absolute top-0 right-0 -mt-8 -mr-8 w-48 h-48 bg-blue-200 rounded-full opacity-30 blur-3xl pointer-events-none"></div>
@@ -354,6 +357,7 @@
                 </div>
             </div>
 
+            <!-- 4. TRANSACTIONS -->
             <div id="view-transactions" class="page-view hidden animate-fade-in space-y-6 max-w-7xl mx-auto">
                 <!-- AI Smart Input -->
                 <div class="bg-gradient-to-r from-teal-50 to-emerald-50 p-6 md:p-8 rounded-2xl shadow-sm border border-teal-100 relative overflow-hidden">
@@ -383,7 +387,7 @@
                     <div class="flex flex-wrap justify-between items-center mb-6 border-b border-slate-100 pb-4 gap-4">
                         <div class="flex flex-wrap items-center gap-4">
                             <h3 class="font-black text-xl text-slate-800 flex items-center gap-2"><i class="fa-regular fa-pen-to-square text-slate-400"></i> <span id="form-title">資料錄入</span></h3>
-                            <button type="button" onclick="TONY_APP.applyRecurringToMonth()" class="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 px-4 py-2 rounded-lg font-bold shadow-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-bolt text-amber-500"></i> 一鍵載入本月定期收支</button>
+                            <button type="button" onclick="TONY_APP.applyRecurringToMonth()" class="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 px-4 py-2 rounded-lg font-bold shadow-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-bolt text-amber-500"></i> 智慧匯入定期收支</button>
                         </div>
                         <button onclick="TONY_APP.clearForm()" id="btn-cancel-edit" class="hidden text-sm font-bold text-rose-500 hover:text-rose-700 bg-rose-50 px-3 py-1.5 rounded-lg transition-colors">取消編輯</button>
                     </div>
@@ -408,7 +412,7 @@
                         <label class="block text-sm font-black text-slate-700"><i class="fa-solid fa-filter text-slate-400 mr-1"></i> 檢視月份</label>
                         <input type="month" id="filter-month" class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm font-bold text-teal-700 focus:ring-2 focus:ring-teal-500 outline-none cursor-pointer" onchange="TONY_APP.renderTable()">
                     </div>
-                    <button onclick="TONY_APP.switchView('estimates')" class="text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 px-4 py-2.5 rounded-lg font-bold shadow-sm transition-colors border border-blue-200 flex items-center gap-2"><i class="fa-solid fa-arrow-right-to-bracket"></i> 前往專案表 (單筆入帳)</button>
+                    <button onclick="TONY_APP.switchView('estimates')" class="text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 px-4 py-2.5 rounded-lg font-bold shadow-sm transition-colors border border-blue-200 flex items-center gap-2"><i class="fa-solid fa-arrow-right-to-bracket"></i> 前往專案預估表 (單筆匯入)</button>
                 </div>
                 
                 <!-- Split Tables (Income vs Expenses) -->
@@ -443,6 +447,7 @@
                 </div>
             </div>
 
+            <!-- 5. ANALYSIS -->
             <div id="view-analysis" class="page-view hidden animate-fade-in space-y-6 max-w-5xl mx-auto">
                 <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
                     <div class="flex flex-col md:flex-row justify-between items-start gap-8">
@@ -488,6 +493,7 @@
                 </div>
             </div>
 
+            <!-- 6. CHAT -->
             <div id="view-chat" class="page-view hidden animate-fade-in h-full flex flex-col max-w-5xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="bg-slate-50 p-5 border-b border-slate-200 flex justify-between items-center z-10">
                     <div class="flex items-center gap-4">
@@ -509,78 +515,14 @@
                 </div>
             </div>
 
-            <div id="view-settings" class="page-view hidden animate-fade-in max-w-3xl mx-auto space-y-6 pb-10">
-                
-                <div class="bg-gradient-to-r from-slate-800 to-slate-900 p-8 rounded-2xl shadow-lg border border-slate-700 text-white relative overflow-hidden">
-                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-white opacity-5 rounded-full pointer-events-none"></div>
-                    <h3 class="font-black text-2xl mb-2 relative z-10 flex items-center gap-3"><i class="fa-solid fa-sliders text-teal-400"></i> 系統設定與配置</h3>
-                    <p class="text-slate-400 text-sm font-medium relative z-10">管理 API 金鑰、家庭成員標籤以及雲端資料庫狀態。</p>
-                </div>
-
-                <!-- API Setup -->
-                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
-                    <h3 class="font-black text-lg text-slate-800 mb-5 flex items-center gap-2"><i class="fa-solid fa-key text-amber-500 bg-amber-50 p-2 rounded-lg"></i> Google Gemini API</h3>
-                    <div class="mb-6">
-                        <p class="text-sm font-medium text-slate-500 mb-3">請輸入您的 API 金鑰以啟用 AI 分析、語音辨識與顧問對話功能。系統採用最新 <code class="bg-slate-100 text-pink-600 px-1 rounded text-xs">gemini-3.5-flash</code> 模型。</p>
-                        <div class="flex flex-col sm:flex-row gap-3">
-                            <input type="password" id="input-api-key" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono focus:ring-2 focus:ring-amber-500 outline-none" placeholder="AIzaSy...">
-                            <button onclick="TONY_APP.saveApiKey()" class="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors whitespace-nowrap">儲存金鑰</button>
-                        </div>
-                    </div>
-                    
-                    <div class="border-t border-slate-100 pt-6">
-                        <h4 class="font-black text-slate-700 mb-3 flex items-center gap-2"><i class="fa-solid fa-cloud text-blue-500"></i> Firebase 雲端資料庫狀態</h4>
-                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-4">
-                            <div>
-                                <p class="text-sm font-bold text-slate-700">專案：d28-tony-personal-finance</p>
-                                <p class="text-xs font-medium text-slate-500 mt-1">資料已自動同步至雲端，跨裝置存取無礙。</p>
-                            </div>
-                            <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
-                                <span id="settings-cloud-dot" class="h-3 w-3 rounded-full bg-slate-300"></span>
-                                <span id="settings-cloud-text" class="text-sm font-bold text-slate-600">檢查中...</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Family Members -->
-                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
-                    <h3 class="font-black text-lg text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-users text-indigo-500 bg-indigo-50 p-2 rounded-lg"></i> 家庭成員標籤設定</h3>
-                    <p class="text-sm font-medium text-slate-500 mb-4">設定要在記帳時標註的家庭成員標籤（例如：本人、太太、女兒）。</p>
-                    <div class="flex gap-3 mb-5">
-                        <input type="text" id="new-member-name" placeholder="輸入新成員名稱..." class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none">
-                        <button onclick="TONY_APP.addMember()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors whitespace-nowrap">新增</button>
-                    </div>
-                    <div id="members-list" class="flex flex-wrap gap-2">
-                        <!-- JS injected -->
-                    </div>
-                </div>
-
-                <!-- Backup & Reset -->
-                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
-                    <h3 class="font-black text-lg text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-hard-drive text-teal-500 bg-teal-50 p-2 rounded-lg"></i> 資料備份與匯出</h3>
-                    <p class="text-sm font-medium text-slate-500 mb-5">您可以手動將雲端資料下載為 JSON 備份檔，或下載 CSV 供 Excel 編輯。</p>
-                    <div class="flex flex-wrap gap-3 mb-6">
-                        <button onclick="TONY_APP.exportLocalData()" class="bg-slate-100 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-sm hover:bg-slate-200 transition-colors border border-slate-200 flex items-center gap-2"><i class="fa-solid fa-download text-teal-600"></i> 全機備份 (JSON)</button>
-                        <label class="bg-slate-100 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-sm hover:bg-slate-200 transition-colors border border-slate-200 flex items-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-upload text-blue-600"></i> 匯入還原 (JSON)
-                            <input type="file" id="import-file" accept=".json" class="hidden" onchange="TONY_APP.importLocalData(event)">
-                        </label>
-                        <button onclick="TONY_APP.exportCSV()" class="bg-emerald-50 text-emerald-700 font-bold px-4 py-2.5 rounded-xl text-sm hover:bg-emerald-100 transition-colors border border-emerald-200 flex items-center gap-2"><i class="fa-solid fa-file-csv"></i> 匯出帳務明細 (CSV)</button>
-                    </div>
-                    <div class="border-t border-slate-100 pt-5">
-                        <button onclick="TONY_APP.requestResetData()" class="text-rose-500 text-sm hover:text-rose-700 font-bold flex items-center justify-center gap-2 px-4 py-2 rounded-lg hover:bg-rose-50 transition-colors w-full sm:w-auto border border-transparent hover:border-rose-100"><i class="fa-solid fa-triangle-exclamation"></i> 刪除所有雲端數據 (Reset)</button>
-                    </div>
-                </div>
-            </div>
-
+            <!-- 7. RECURRING -->
             <div id="view-recurring" class="page-view hidden animate-fade-in space-y-6 max-w-6xl mx-auto">
                 <div class="bg-gradient-to-r from-purple-50 to-white p-6 md:p-8 rounded-2xl shadow-sm border border-purple-100 relative overflow-hidden">
                     <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-purple-200 rounded-full opacity-30 blur-3xl pointer-events-none"></div>
                     <h3 class="font-black text-xl text-purple-900 mb-2 flex items-center gap-3 relative z-10">
                         <i class="fa-solid fa-clock-rotate-left text-purple-600 bg-purple-100 p-2 rounded-xl"></i> 定期收支設定
                     </h3>
-                    <p class="text-sm font-medium text-purple-700/80 relative z-10 max-w-3xl">在此建立您每個月固定的收支範本（如：房租、訂閱費、薪水）。設定完成後，在「月度資料錄入」頁面中，點擊閃電按鈕，系統會智慧偵測您選擇的月份並一鍵帶入，省去重複輸入的麻煩。</p>
+                    <p class="text-sm font-medium text-purple-700/80 relative z-10 max-w-3xl">建立每個月固定的收支範本。設定完成後，在「月度資料錄入」點擊閃電按鈕，系統會智慧偵測您選擇的月份並一鍵帶入，省去重複輸入的麻煩。</p>
                 </div>
 
                 <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
@@ -634,10 +576,77 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 8. SETTINGS -->
+            <div id="view-settings" class="page-view hidden animate-fade-in max-w-3xl mx-auto space-y-6 pb-10">
+                
+                <div class="bg-gradient-to-r from-slate-800 to-slate-900 p-8 rounded-2xl shadow-lg border border-slate-700 text-white relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-white opacity-5 rounded-full pointer-events-none"></div>
+                    <h3 class="font-black text-2xl mb-2 relative z-10 flex items-center gap-3"><i class="fa-solid fa-sliders text-teal-400"></i> 系統設定與配置</h3>
+                    <p class="text-slate-400 text-sm font-medium relative z-10">管理登入帳號、API 金鑰、家庭成員標籤以及雲端資料庫狀態。</p>
+                </div>
+
+                <!-- Account & Cloud Status -->
+                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 mb-6">
+                    <h3 class="font-black text-lg text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-id-badge text-blue-500 bg-blue-50 p-2 rounded-lg"></i> 帳號與雲端狀態</h3>
+                    
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-4 mb-4">
+                        <div>
+                            <p class="text-sm font-bold text-slate-700">目前登入身分：<span id="auth-status-text" class="text-amber-600 font-black">訪客 (匿名登入)</span></p>
+                            <p class="text-xs font-medium text-slate-500 mt-1" id="auth-uid-text">UID: 載入中...</p>
+                        </div>
+                        <button id="btn-google-login" onclick="TONY_APP.loginWithGoogle()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center gap-2 hidden"><i class="fa-brands fa-google"></i> 切換為 Google 登入</button>
+                        <button id="btn-google-logout" onclick="TONY_APP.logoutGoogle()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center gap-2 hidden"><i class="fa-solid fa-right-from-bracket"></i> 登出</button>
+                    </div>
+                    
+                    <p class="text-xs font-bold text-rose-500 bg-rose-50 p-3 rounded-lg border border-rose-100 leading-relaxed"><i class="fa-solid fa-triangle-exclamation"></i> 提示：首次切換為 Google 登入後，畫面會變空白（因為是建立全新連線）。<br>請在登入成功後，點擊下方的「匯入還原 (JSON)」上傳您的備份檔，資料就會永久綁定至您的 Google 帳號！</p>
+                </div>
+
+                <!-- API Setup -->
+                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="font-black text-lg text-slate-800 mb-5 flex items-center gap-2"><i class="fa-solid fa-key text-amber-500 bg-amber-50 p-2 rounded-lg"></i> Google Gemini API</h3>
+                    <div class="mb-6">
+                        <p class="text-sm font-medium text-slate-500 mb-3">請輸入您的 API 金鑰以啟用 AI 功能。系統採用最新 <code class="bg-slate-100 text-pink-600 px-1 rounded text-xs">gemini-3.8-flash</code> 模型。</p>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input type="password" id="input-api-key" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono focus:ring-2 focus:ring-amber-500 outline-none" placeholder="AIzaSy...">
+                            <button onclick="TONY_APP.saveApiKey()" class="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors whitespace-nowrap">儲存金鑰</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Family Members -->
+                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="font-black text-lg text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-users text-indigo-500 bg-indigo-50 p-2 rounded-lg"></i> 家庭成員標籤設定</h3>
+                    <p class="text-sm font-medium text-slate-500 mb-4">設定要在記帳時標註的家庭成員標籤（例如：本人、太太、女兒）。</p>
+                    <div class="flex gap-3 mb-5">
+                        <input type="text" id="new-member-name" placeholder="輸入新成員名稱..." class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <button onclick="TONY_APP.addMember()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors whitespace-nowrap">新增</button>
+                    </div>
+                    <div id="members-list" class="flex flex-wrap gap-2">
+                        <!-- JS injected -->
+                    </div>
+                </div>
+
+                <!-- Backup & Reset -->
+                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="font-black text-lg text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-hard-drive text-teal-500 bg-teal-50 p-2 rounded-lg"></i> 資料備份與匯出</h3>
+                    <p class="text-sm font-medium text-slate-500 mb-5">請務必定期將雲端資料下載為 JSON 備份檔，以防快取清除導致帳號變更。</p>
+                    <div class="flex flex-wrap gap-3 mb-6">
+                        <button onclick="TONY_APP.exportLocalData()" class="bg-slate-100 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-sm hover:bg-slate-200 transition-colors border border-slate-200 flex items-center gap-2"><i class="fa-solid fa-download text-teal-600"></i> 全機備份 (JSON)</button>
+                        <label class="bg-slate-100 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-sm hover:bg-slate-200 transition-colors border border-slate-200 flex items-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-upload text-blue-600"></i> 匯入還原 (JSON)
+                            <input type="file" id="import-file" accept=".json" class="hidden" onchange="TONY_APP.importLocalData(event)">
+                        </label>
+                        <button onclick="TONY_APP.exportCSV()" class="bg-emerald-50 text-emerald-700 font-bold px-4 py-2.5 rounded-xl text-sm hover:bg-emerald-100 transition-colors border border-emerald-200 flex items-center gap-2"><i class="fa-solid fa-file-csv"></i> 匯出明細 (CSV)</button>
+                    </div>
+                    <div class="border-t border-slate-100 pt-5">
+                        <button onclick="TONY_APP.requestResetData()" class="text-rose-500 text-sm hover:text-rose-700 font-bold flex items-center justify-center gap-2 px-4 py-2 rounded-lg hover:bg-rose-50 transition-colors w-full sm:w-auto border border-transparent hover:border-rose-100"><i class="fa-solid fa-triangle-exclamation"></i> 刪除所有雲端數據 (Reset)</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
-    
     <!-- Category Modal -->
     <div id="modal-category" class="modal hidden fixed inset-0 flex items-center justify-center z-50">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-40" onclick="TONY_APP.closeCategoryModal()"></div>
@@ -894,38 +903,34 @@
                 let totalBank = 0, totalCC = 0, totalLoan = 0;
                 const safeNum = (v) => Number(v) || 0;
                 
-                // Banks
                 const bList = document.getElementById('list-bank-accounts');
                 bList.innerHTML = this.data.assets.accounts.map((a, i) => {
                     totalBank += safeNum(a.balance);
-                    return `<div class="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-shadow group"><div><p class="font-bold text-slate-700 text-sm">${a.name}</p></div><div class="flex items-center gap-2"><p class="font-mono font-black text-teal-600 mr-2 text-base">NT$ ${safeNum(a.balance).toLocaleString()}</p><button onclick="TONY_APP.openEditAssetModal('account', ${i})" class="text-slate-300 hover:text-teal-600 p-1.5 transition-colors" title="更新金額"><i class="fa-solid fa-pen"></i></button><button onclick="TONY_APP.deleteAsset('account', ${i})" class="text-slate-300 hover:text-rose-500 p-1.5 transition-colors opacity-0 group-hover:opacity-100" title="刪除"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
+                    return `<div class="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-shadow group"><div><p class="font-bold text-slate-700 text-sm">${a.name}</p></div><div class="flex items-center gap-2"><p class="font-mono font-black text-teal-600 mr-2 text-base">NT$ ${safeNum(a.balance).toLocaleString()}</p><button onclick="TONY_APP.openEditAssetModal('account', ${i})" class="text-slate-300 hover:text-teal-600 p-1.5 transition-colors" title="更新金額"><i class="fa-solid fa-pen"></i></button><button onclick="TONY_APP.deleteAsset('account', ${i})" class="text-slate-300 hover:text-rose-500 p-1.5 transition-colors opacity-0 md:opacity-100 group-hover:opacity-100" title="刪除"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
                 }).join('') || '<div class="h-full flex flex-col items-center justify-center text-slate-400 opacity-50"><i class="fa-solid fa-piggy-bank text-3xl mb-2"></i><p class="text-xs font-bold">無帳戶紀錄</p></div>';
                 document.getElementById('total-bank-assets').innerText = `NT$ ${totalBank.toLocaleString()}`;
 
-                // CCs
                 const cList = document.getElementById('list-credit-cards');
                 cList.innerHTML = this.data.assets.cards.map((c, i) => {
                     totalCC += safeNum(c.balance);
-                    return `<div class="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-shadow group"><div><p class="font-bold text-slate-700 text-sm">${c.name}</p></div><div class="flex items-center gap-2"><p class="font-mono font-black text-rose-500 mr-2 text-base">NT$ ${safeNum(c.balance).toLocaleString()}</p><button onclick="TONY_APP.openEditAssetModal('card', ${i})" class="text-slate-300 hover:text-rose-600 p-1.5 transition-colors" title="更新金額"><i class="fa-solid fa-pen"></i></button><button onclick="TONY_APP.deleteAsset('card', ${i})" class="text-slate-300 hover:text-rose-500 p-1.5 transition-colors opacity-0 group-hover:opacity-100" title="刪除"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
+                    return `<div class="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-shadow group"><div><p class="font-bold text-slate-700 text-sm">${c.name}</p></div><div class="flex items-center gap-2"><p class="font-mono font-black text-rose-500 mr-2 text-base">NT$ ${safeNum(c.balance).toLocaleString()}</p><button onclick="TONY_APP.openEditAssetModal('card', ${i})" class="text-slate-300 hover:text-rose-600 p-1.5 transition-colors" title="更新金額"><i class="fa-solid fa-pen"></i></button><button onclick="TONY_APP.deleteAsset('card', ${i})" class="text-slate-300 hover:text-rose-500 p-1.5 transition-colors opacity-0 md:opacity-100 group-hover:opacity-100" title="刪除"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
                 }).join('') || '<div class="h-full flex flex-col items-center justify-center text-slate-400 opacity-50"><i class="fa-solid fa-credit-card text-3xl mb-2"></i><p class="text-xs font-bold">無未繳紀錄</p></div>';
                 document.getElementById('total-cc-debt').innerText = `NT$ ${totalCC.toLocaleString()}`;
 
-                // Loans
                 const lList = document.getElementById('list-loans');
                 lList.innerHTML = this.data.assets.loans.map((l, i) => {
                     const rem = safeNum(l.total) - safeNum(l.paid); totalLoan += rem;
                     const pct = safeNum(l.total) > 0 ? (safeNum(l.paid) / safeNum(l.total)) * 100 : 0;
                     return `<div class="p-4 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-shadow space-y-3 group">
-                        <div class="flex justify-between items-start"><div><p class="font-bold text-slate-800 text-sm">${l.name}</p><p class="text-xs font-medium text-slate-500 mt-1">總額: ${safeNum(l.total).toLocaleString()} | 期數: ${safeNum(l.termsPaid)}/${safeNum(l.terms)}</p></div><div class="flex gap-1"><button onclick="TONY_APP.editLoan(${i})" class="text-slate-300 hover:text-amber-600 p-1.5 transition-colors"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="TONY_APP.deleteAsset('loan', ${i})" class="text-slate-300 hover:text-rose-500 p-1.5 transition-colors opacity-0 group-hover:opacity-100"><i class="fa-solid fa-trash-can"></i></button></div></div>
+                        <div class="flex justify-between items-start"><div><p class="font-bold text-slate-800 text-sm">${l.name}</p><p class="text-xs font-medium text-slate-500 mt-1">總額: ${safeNum(l.total).toLocaleString()} | 期數: ${safeNum(l.termsPaid)}/${safeNum(l.terms)}</p></div><div class="flex gap-1"><button onclick="TONY_APP.editLoan(${i})" class="text-slate-300 hover:text-amber-600 p-1.5 transition-colors"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="TONY_APP.deleteAsset('loan', ${i})" class="text-slate-300 hover:text-rose-500 p-1.5 transition-colors opacity-0 md:opacity-100 group-hover:opacity-100"><i class="fa-solid fa-trash-can"></i></button></div></div>
                         <div><div class="flex justify-between text-[11px] font-bold mb-1.5 uppercase tracking-wide"><span class="text-emerald-600">已還: ${safeNum(l.paid).toLocaleString()}</span><span class="text-amber-600">剩餘: ${rem.toLocaleString()}</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${pct}%"></div></div></div>
                     </div>`;
                 }).join('') || '<div class="h-full flex flex-col items-center justify-center text-slate-400 opacity-50"><i class="fa-solid fa-house-chimney text-3xl mb-2"></i><p class="text-xs font-bold">無貸款紀錄</p></div>';
                 document.getElementById('total-loan-debt').innerText = `NT$ ${totalLoan.toLocaleString()}`;
 
-                // Net Worth
                 const nw = totalBank - totalCC - totalLoan;
                 document.getElementById('assets-net-worth').innerText = `NT$ ${nw.toLocaleString()}`;
-                document.getElementById('assets-net-worth').className = `text-3xl font-black font-mono tracking-tight ${nw >= 0 ? 'text-indigo-800' : 'text-rose-600'}`;
+                document.getElementById('assets-net-worth').className = `text-3xl font-black text-indigo-800 font-mono tracking-tight ${nw >= 0 ? '' : 'text-rose-600'}`;
                 if(document.getElementById('dash-net-worth')) document.getElementById('dash-net-worth').innerText = `NT$ ${nw.toLocaleString()}`;
             },
             addAsset: function(e, type) {
@@ -1129,8 +1134,8 @@
                 let savingsRate = 0; if (income > 0) { savingsRate = ((netFlow / income) * 100).toFixed(1); } else if (totalExpense > 0) { savingsRate = -100; }
 
                 document.getElementById('dash-income').innerText = `NT$ ${income.toLocaleString()}`; document.getElementById('dash-expense-total').innerText = `NT$ ${totalExpense.toLocaleString()}`; document.getElementById('dash-net').innerText = `NT$ ${netFlow.toLocaleString()}`; 
-                const rateEl = document.getElementById('dash-savings-rate'); rateEl.innerText = `${savingsRate}%`; rateEl.className = `text-3xl font-black font-mono tracking-tight ${savingsRate >= 0 ? 'text-teal-600' : 'text-rose-500'}`;
-                const netEl = document.getElementById('dash-net'); netEl.className = `text-3xl font-black font-mono tracking-tight ${netFlow >= 0 ? 'text-teal-300' : 'text-rose-400'}`;
+                const rateEl = document.getElementById('dash-savings-rate'); rateEl.innerText = `${savingsRate}%`; rateEl.className = `text-2xl font-black tracking-tight ${savingsRate >= 0 ? 'text-teal-600' : 'text-rose-500'}`;
+                const netEl = document.getElementById('dash-net'); netEl.className = `text-2xl font-black font-mono tracking-tight ${netFlow >= 0 ? 'text-white' : 'text-rose-400'}`;
 
                 document.getElementById('dash-expense-cash').innerText = `NT$ ${cash.toLocaleString()}`; document.getElementById('dash-expense-credit').innerText = `NT$ ${credit.toLocaleString()}`; document.getElementById('dash-ai').innerText = `NT$ ${ai.toLocaleString()}`; 
 
@@ -1141,10 +1146,11 @@
                 btns.forEach(b => {
                     const btn = document.getElementById(`btn-struct-${b}`); let active = false;
                     if(mode === 'income' && b === 'inc') active = true; if(mode === 'expense' && b === 'exp') active = true; if(mode === 'cc_daily' && b === 'cc') active = true; if(mode === 'cc_ai' && b === 'ai') active = true;
-                    if(active) { btn.className = "px-4 py-2 text-xs rounded-xl font-black bg-white shadow-sm text-teal-600 transition-all scale-105 border border-slate-200"; if(mode !== 'income') btn.className = btn.className.replace('text-teal-600', 'text-rose-600'); } else { btn.className = "px-4 py-2 text-xs rounded-xl font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-200/50 transition-all border border-transparent"; }
+                    if(active) { btn.className = "px-3 py-1.5 text-xs rounded-lg font-bold bg-white shadow-sm text-teal-600 transition-all border border-slate-200 scale-105"; if(mode !== 'income') btn.className = btn.className.replace('text-teal-600', 'text-rose-600'); } else { btn.className = "px-3 py-1.5 text-xs rounded-lg font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-200/50 transition-all border border-transparent"; }
                 });
                 this.renderDashboard(); 
             },
+
             updateCharts: function(data) {
                 const ctx1 = document.getElementById('chart-structure'); if(this.chart1) this.chart1.destroy();
                 const mode = this.data.chartStructMode; const cats = {}; let filteredData = [];
@@ -1270,21 +1276,15 @@
                 const freqMap = { 'monthly': '每月', 'bimonthly': '雙月繳', 'quarterly': '季繳', 'semester': '學期(半年)', 'annual': '年繳' };
 
                 tbody.innerHTML = this.data.recurring.map((tpl, i) => {
-                    // Check existence (Matches Category and Member in the target month)
                     const exists = this.data.transactions.find(t => t.date === targetMonth && t.category === tpl.category && t.member === tpl.member);
-                    const freqCode = tpl.freq || 'monthly';
-                    const freqLabel = freqMap[freqCode];
-
-                    let checkHtml = '';
-                    let rowClass = 'hover:bg-indigo-50/50 transition-colors';
-                    let statusHtml = '';
+                    const freqCode = tpl.freq || 'monthly'; const freqLabel = freqMap[freqCode];
+                    let checkHtml = ''; let rowClass = 'hover:bg-indigo-50/50 transition-colors'; let statusHtml = '';
 
                     if (exists) {
                         checkHtml = `<input type="checkbox" disabled class="w-5 h-5 text-slate-400 bg-slate-100 border-slate-300 rounded">`;
                         rowClass = 'bg-slate-100 opacity-60 grayscale';
                         statusHtml = `<span class="text-rose-500 font-bold text-xs bg-rose-50 px-2 py-1 rounded border border-rose-100"><i class="fa-solid fa-triangle-exclamation"></i> 本月已存在</span>`;
                     } else {
-                        // Default check "monthly". Leave others unchecked.
                         const isChecked = freqCode === 'monthly' ? 'checked' : '';
                         checkHtml = `<input type="checkbox" id="import-check-${i}" value="${i}" ${isChecked} class="w-5 h-5 text-indigo-600 bg-white border-slate-300 rounded focus:ring-indigo-500 cursor-pointer import-checkbox transition-all">`;
                     }
@@ -1318,15 +1318,10 @@
 
                 let addedCount = 0;
                 checkboxes.forEach(cb => {
-                    const idx = cb.value;
-                    const tpl = this.data.recurring[idx];
+                    const idx = cb.value; const tpl = this.data.recurring[idx];
                     const newTrans = { 
                         id: String(Date.now() + Math.random().toString().slice(2, 8)), 
-                        date: targetMonth, 
-                        member: tpl.member, 
-                        type: tpl.type, 
-                        category: tpl.category, 
-                        amount: Number(tpl.amount)||0, 
+                        date: targetMonth, member: tpl.member, type: tpl.type, category: tpl.category, amount: Number(tpl.amount)||0, 
                         note: tpl.note || `(${tpl.freq === 'monthly' ? '定期' : '週期'}自動載入)` 
                     };
                     this.data.transactions.push(newTrans); 
@@ -1334,8 +1329,7 @@
                     addedCount++;
                 });
                 
-                this.renderDashboard(); this.renderTable();
-                this.closeImportModal();
+                this.renderDashboard(); this.renderTable(); this.closeImportModal();
                 this.showAlert(`匯入成功！\n已將勾選的 ${addedCount} 筆項目寫入至 ${targetMonth}。`);
             },
 
@@ -1389,7 +1383,7 @@
                         const base64Data = reader.result.split(',')[1]; const mimeType = file.type; const today = new Date().toISOString().split('T')[0];
                         const prompt = `System: You are an expert financial receipt parser. Current date: ${today}. Available categories: ${JSON.stringify(this.data.categories)}. Task: Analyze this receipt image and extract transaction details. Match the category to the most appropriate one from the available list. Output strict JSON only. Schema: {"date":"YYYY-MM", "type":"I/CE/CC/AI", "category":"exact name", "amount": number, "note":"store name / items summary"}`;
                         const payload = { contents: [{ role: "user", parts: [{ text: prompt }, { inlineData: { mimeType: mimeType, data: base64Data } }] }], generationConfig: { responseMimeType: "application/json" } };
-                        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${this.data.apiKey}`;
+                        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${this.data.apiKey}`;
                         const data = await this.fetchGeminiWithBackoff(url, payload);
                         if (data.candidates && data.candidates[0].content) {
                             const result = JSON.parse(data.candidates[0].content.parts[0].text);
@@ -1410,7 +1404,7 @@
                 const prompt = `System: Financial parser. Current: ${today}. Categories: ${JSON.stringify(this.data.categories)}. Input: '${text}'. Extract using available categories if close match. Output JSON schema: {"date":"YYYY-MM", "type":"I/CE/CC/AI", "category":"exact name", "amount": number, "note":"summary"}`;
                 try {
                     const payload = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } };
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${this.data.apiKey}`;
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${this.data.apiKey}`;
                     const data = await this.fetchGeminiWithBackoff(url, payload);
                     const result = JSON.parse(data.candidates[0].content.parts[0].text);
                     document.getElementById('t-date').value = result.date;
@@ -1444,7 +1438,6 @@
                 const text = this.data.lastAnalysisText || document.getElementById('ai-content').innerText; if(!text || text.length < 5) return this.showAlert("請先生成分析報告");
                 const btn = document.getElementById('btn-read-ai'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
                 try {
-                    // Fallback to Gemini 2.5 Flash for TTS as 3.5 modality might differ
                     const payload = { contents: [{ parts: [{ text: "請朗讀: " + text.replace(/[#*]/g,'') }] }], generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } } } };
                     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.data.apiKey}`;
                     const data = await this.fetchGeminiWithBackoff(url, payload);
@@ -1461,7 +1454,7 @@
                 const promptText = `Role: Senior Financial Advisor TONY. Task: Analyze financial data for Period: ${label}. User Context (IMPORTANT): "${context}". Current Data: ${JSON.stringify(data)}. Historical Trace: ${historicalSummary}. Assets/Liabilities: ${assetSummary}. Estimates/Risks: ${estSummary}. Requirement: 1. Use # Headers. 2. Analyze Cash Flow. 3. Assess overall Net Worth & Loan Health. 4. Address the Pipeline & Risks. 5. Incorporate Context into advice. 6. Highlight Warnings in > Blockquotes. 7. Language: Traditional Chinese (Taiwan). Format: Markdown.`;
                 try {
                     const payload = { contents: [{ parts: [{ text: promptText }] }] };
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${this.data.apiKey}`;
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${this.data.apiKey}`;
                     const response = await this.fetchGeminiWithBackoff(url, payload);
                     const text = response.candidates[0].content.parts[0].text; 
                     
@@ -1481,7 +1474,7 @@
                 const prompt = `You are TONY's Financial AI. Data: ${context}. History: ${recentChat}. User asks: "${msg}". Answer in Traditional Chinese. Keep it concise, professional, and helpful. Format using standard text or simple markdown.`;
                 try {
                     const payload = { contents: [{ parts: [{ text: prompt }] }] };
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${this.data.apiKey}`;
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${this.data.apiKey}`;
                     const data = await this.fetchGeminiWithBackoff(url, payload);
                     const reply = data.candidates[0].content.parts[0].text;
                     
@@ -1503,16 +1496,14 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Unique identifier to separate from environment default
         const appId = 'tony-finance-app-v2';
-        let db = null; let userId = null;
+        let db = null; let userId = null; let auth = null;
 
         window.TONY_APP.initFirebase = async function() {
             try {
-                // Ensure explicit config is used, bypassing any environment injected tokens
                 const firebaseConfig = {
                     apiKey: "AIzaSyBQGLfir5tmYdbW_8xG87JnzruHTzfxQ1I",
                     authDomain: "d28-tony-personal-finance.firebaseapp.com",
@@ -1524,33 +1515,93 @@
                 };
                 
                 const app = initializeApp(firebaseConfig, "TonyCustomApp");
-                const auth = getAuth(app); db = getFirestore(app);
+                auth = getAuth(app); db = getFirestore(app);
 
-                try { 
-                    await signInAnonymously(auth); 
-                } catch (authErr) { 
-                    console.error("Auth Error. Ensure 'Anonymous' is enabled in Firebase Console > Authentication.", authErr); 
-                    throw authErr; 
-                }
-                
-                userId = auth.currentUser?.uid; if (!userId) throw new Error("Authentication failed to return UID.");
+                // Use onAuthStateChanged to handle robust auth state flows
+                return new Promise((resolve) => {
+                    onAuthStateChanged(auth, async (user) => {
+                        if (user) {
+                            userId = user.uid;
+                            
+                            // 1. Update the UI based on auth type
+                            const statusText = document.getElementById('auth-status-text');
+                            const uidText = document.getElementById('auth-uid-text');
+                            const loginBtn = document.getElementById('btn-google-login');
+                            const logoutBtn = document.getElementById('btn-google-logout');
+                            
+                            if (statusText) {
+                                if (user.isAnonymous) {
+                                    statusText.innerText = '訪客 (匿名登入)';
+                                    statusText.className = 'text-amber-600 font-black';
+                                    loginBtn.classList.remove('hidden');
+                                    logoutBtn.classList.add('hidden');
+                                } else {
+                                    statusText.innerText = user.email || 'Google 授權用戶';
+                                    statusText.className = 'text-blue-600 font-black';
+                                    loginBtn.classList.add('hidden');
+                                    logoutBtn.classList.remove('hidden');
+                                }
+                                uidText.innerText = `UID: ${userId}`;
+                            }
 
-                await this.loadDataFromCloud();
-                this.initUI(); this.updateCloudUI(true);
+                            // 2. Clear current data before loading new user's data (keeps API key)
+                            const currentApiKey = this.data.apiKey;
+                            this.data = { 
+                                transactions: [], categories: JSON.parse(JSON.stringify(this.defaults)), reports: {}, 
+                                apiKey: currentApiKey, chatHistory: [], chartStructMode: 'income', 
+                                recurring: [], members: [...this.defaults.members], 
+                                assets: { accounts: [], cards: [], loans: [] }, estimates: [], risks: [] 
+                            };
 
+                            // 3. Load user data and init
+                            await this.loadDataFromCloud();
+                            this.initUI(); 
+                            this.updateCloudUI(true);
+                            resolve(); 
+                        } else {
+                            // User is null (e.g., first visit, or explicitly signed out)
+                            try { await signInAnonymously(auth); } catch (e) { console.error(e); }
+                        }
+                    });
+                });
             } catch (error) {
                 console.error("Firebase Init Error:", error);
                 this.data.categories = JSON.parse(JSON.stringify(this.defaults));
                 this.initUI(); this.updateCloudUI(false); 
-                this.showAlert("雲端連線失敗。\n請檢查網路，或確認 Firebase Console 已開啟「匿名登入(Anonymous)」。");
+                this.showAlert("雲端連線失敗。\n請檢查網路，或確認 Firebase Console 設定正確。");
             }
         };
 
-        window.TONY_APP.loadDataFromCloud = async function() {
-            if (!userId || !db) return;
+        window.TONY_APP.loginWithGoogle = async function() {
+            if(!auth) return this.showAlert("系統尚未初始化完成，請稍候再試。");
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+                this.showAlert("🎉 Google 登入成功！\n\n系統已為您建立專屬的永久雲端帳號。\n請點擊下方的「匯入還原 (JSON)」，將剛才的備份檔上傳，即可完成資料無縫轉移！");
+            } catch (error) {
+                console.error("Google Login Error:", error);
+                this.showAlert("登入失敗或已取消。\n\n請確認您是否已在 Firebase Console > Authentication 中啟用 Google 登入功能。\n錯誤訊息: " + error.message);
+            }
+        };
+
+        window.TONY_APP.logoutGoogle = async function() {
+            if(!auth) return;
+            this.showConfirm("確定要登出 Google 帳號嗎？\n登出後系統將自動切換回訪客模式（畫面將變空白）。", async () => {
+                try {
+                    await signOut(auth);
+                    this.showAlert("已登出 Google 帳號，系統已切換回訪客模式。");
+                } catch (error) {
+                    console.error("Logout Error:", error);
+                }
+            });
+        };
+
+        window.TONY_APP.loadDataFromCloud = async function(targetUid = null) {
+            const uidToLoad = targetUid || userId;
+            if (!uidToLoad || !db) return false;
             try {
                 // 1. Configs
-                const settingsRef = doc(db, 'artifacts', appId, 'users', userId, 'config', 'settings');
+                const settingsRef = doc(db, 'artifacts', appId, 'users', uidToLoad, 'config', 'settings');
                 const settingsSnap = await getDoc(settingsRef);
                 
                 if (settingsSnap.exists()) {
@@ -1561,30 +1612,33 @@
                     if (d.members) this.data.members = d.members; else this.data.members = [...this.defaults.members];
                     if (d.assets) this.data.assets = d.assets;
                 } else {
-                    this.data.categories = JSON.parse(JSON.stringify(this.defaults));
-                    this.data.members = [...this.defaults.members];
+                    if(!targetUid) {
+                        this.data.categories = JSON.parse(JSON.stringify(this.defaults));
+                        this.data.members = [...this.defaults.members];
+                    }
                 }
 
                 // 2. Reports
-                const reportsRef = collection(db, 'artifacts', appId, 'users', userId, 'reports');
+                const reportsRef = collection(db, 'artifacts', appId, 'users', uidToLoad, 'reports');
                 const reportsSnap = await getDocs(reportsRef);
                 reportsSnap.forEach(d => { this.data.reports[d.id] = d.data(); });
 
                 // 3. Transactions
-                const transRef = collection(db, 'artifacts', appId, 'users', userId, 'transactions');
+                const transRef = collection(db, 'artifacts', appId, 'users', uidToLoad, 'transactions');
                 const transSnap = await getDocs(transRef);
                 this.data.transactions = []; transSnap.forEach(d => { this.data.transactions.push(d.data()); });
 
                 // 4. Estimates & Risks 
-                const estRef = collection(db, 'artifacts', appId, 'users', userId, 'estimates');
+                const estRef = collection(db, 'artifacts', appId, 'users', uidToLoad, 'estimates');
                 const estSnap = await getDocs(estRef);
                 this.data.estimates = []; estSnap.forEach(d => { this.data.estimates.push(d.data()); });
 
-                const riskRef = collection(db, 'artifacts', appId, 'users', userId, 'risks');
+                const riskRef = collection(db, 'artifacts', appId, 'users', uidToLoad, 'risks');
                 const riskSnap = await getDocs(riskRef);
                 this.data.risks = []; riskSnap.forEach(d => { this.data.risks.push(d.data()); });
 
-            } catch (e) { throw e; }
+                return true;
+            } catch (e) { console.error(e); throw e; }
         };
 
         window.TONY_APP.saveSettingsToCloud = async function() {
@@ -1642,7 +1696,8 @@
                         const settingsRef = doc(db, 'artifacts', appId, 'users', userId, 'config', 'settings'); await deleteDoc(settingsRef);
                     } catch(e) { console.error("Error during reset:", e); }
                 }
-                this.data = { transactions: [], categories: JSON.parse(JSON.stringify(this.defaults)), reports: {}, apiKey: '', chatHistory: [], chartStructMode: 'income', recurring: [], members: [...this.defaults.members], assets: { accounts: [], cards: [], loans: [] }, estimates: [], risks: [] };
+                const currentApiKey = this.data.apiKey;
+                this.data = { transactions: [], categories: JSON.parse(JSON.stringify(this.defaults)), reports: {}, apiKey: currentApiKey, chatHistory: [], chartStructMode: 'income', recurring: [], members: [...this.defaults.members], assets: { accounts: [], cards: [], loans: [] }, estimates: [], risks: [] };
                 this.initUI(); this.updateCloudUI(true); this.showAlert("雲端資料已全數清除。");
             });
         };
