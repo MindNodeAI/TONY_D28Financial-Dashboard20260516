@@ -124,13 +124,13 @@
                     <p class="text-xs font-medium text-teal-400">AI 資深顧問</p>
                 </div>
             </div>
-            <div class="hidden md:block mt-4 text-[10px] text-slate-500 text-center font-medium">© 2026 TONY STUDIO.<br>All Rights Reserved.</div>
+            <div class="hidden md:block mt-4 text-[10px] text-slate-400 text-center font-medium">© 2020 TonyStudio (TONY 楊文澤顧問).<br>All Rights Reserved.</div>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col h-[100dvh] overflow-hidden relative bg-slate-50/50">
         <!-- Top Header -->
-        <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 md:px-8 shadow-sm z-10">
+        <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 md:px-8 shadow-sm z-10 shrink-0">
             <h2 id="page-title" class="text-lg md:text-xl font-black text-slate-800 tracking-tight">財務儀表板</h2>
             <div class="flex items-center gap-4 md:gap-6">
                 <!-- Gemini Status -->
@@ -278,7 +278,7 @@
                         </div>
                         <div class="p-4 border-t border-slate-100 bg-white">
                             <form onsubmit="TONY_APP.addAsset(event, 'account')" class="grid grid-cols-[1fr_90px_auto] gap-2 w-full">
-                                <input type="text" id="new-acc-name" placeholder="名稱(如:中信薪轉)" required class="w-full min-w-0 text-sm border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 outline-none font-medium transition-shadow">
+                                <input type="text" id="new-acc-name" placeholder="名稱(如:薪轉)" required class="w-full min-w-0 text-sm border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 outline-none font-medium transition-shadow">
                                 <input type="number" id="new-acc-bal" placeholder="餘額" required class="w-full min-w-0 text-sm border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 outline-none font-medium font-mono transition-shadow">
                                 <button type="submit" class="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-500 transition-colors shadow-sm font-bold"><i class="fa-solid fa-plus"></i></button>
                             </form>
@@ -296,7 +296,7 @@
                         </div>
                         <div class="p-4 border-t border-slate-100 bg-white">
                             <form onsubmit="TONY_APP.addAsset(event, 'card')" class="grid grid-cols-[1fr_90px_auto] gap-2 w-full">
-                                <input type="text" id="new-card-name" placeholder="卡片(如:國泰CUBE)" required class="w-full min-w-0 text-sm border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 focus:ring-2 focus:ring-rose-500 outline-none font-medium transition-shadow">
+                                <input type="text" id="new-card-name" placeholder="卡片名稱" required class="w-full min-w-0 text-sm border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 focus:ring-2 focus:ring-rose-500 outline-none font-medium transition-shadow">
                                 <input type="number" id="new-card-bal" placeholder="未繳" required class="w-full min-w-0 text-sm border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 focus:ring-2 focus:ring-rose-500 outline-none font-medium font-mono transition-shadow">
                                 <button type="submit" class="bg-rose-600 text-white px-4 py-2 rounded-lg hover:bg-rose-500 transition-colors shadow-sm font-bold"><i class="fa-solid fa-plus"></i></button>
                             </form>
@@ -350,7 +350,7 @@
                             <h4 class="font-black text-slate-800 flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation text-rose-500"></i> 潛在財務風險</h4>
                             <button onclick="TONY_APP.openRiskModal()" class="text-xs bg-rose-600 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-rose-500 transition-colors shadow-sm flex items-center gap-1"><i class="fa-solid fa-plus"></i> 新增風險</button>
                         </div>
-                        <div class="p-4 space-y-3 flex-1 overflow-y-auto" id="risks-list">
+                        <div class="p-4 space-y-3 flex-1 overflow-y-auto h-[400px]" id="risks-list">
                             <!-- JS injected -->
                         </div>
                     </div>
@@ -826,6 +826,29 @@
             types: { 'I': '收入', 'CE': '現金支出', 'CC': '信用卡支出(日常固定項目)', 'AI': '信用卡支出(AI訂閱)' },
             confirmCallback: null,
 
+            // --- 核心架構：AI JSON 容錯自癒系統 (Self-Healing Parsing Pipeline) ---
+            parseAIJson: function(text) {
+                if (!text) throw new Error("AI 回傳了空白內容");
+                try {
+                    // 1. 嘗試直接解析 (若 AI 乖乖聽話直接給 JSON)
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.warn("直接解析 JSON 失敗，嘗試啟動 Regex 容錯修復...", e);
+                    try {
+                        // 2. 容錯修復：透過正則表達式，提取字串中第一個 '{' 到最後一個 '}' 的區塊
+                        const match = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+                        if (match) {
+                            return JSON.parse(match[0]);
+                        } else {
+                            throw new Error("無法從字串中萃取出 JSON 結構");
+                        }
+                    } catch (err) {
+                        console.error("容錯修復失敗，原始字串：", text);
+                        throw new Error("AI 產生的格式異常，請嘗試換一種說法。");
+                    }
+                }
+            },
+
             // --- UI Helpers ---
             showAlert: function(msg) { document.getElementById('custom-alert-text').innerText = msg; document.getElementById('modal-alert').classList.replace('hidden', 'flex'); },
             closeAlert: function() { document.getElementById('modal-alert').classList.replace('flex', 'hidden'); },
@@ -859,15 +882,12 @@
 
             updateCloudUI: function(status) {
                 const headInd = document.getElementById('cloud-indicator'); const headTxt = document.getElementById('cloud-status');
-                const setInd = document.getElementById('settings-cloud-dot'); const setTxt = document.getElementById('settings-cloud-text');
                 if (status === true) {
                     headInd.className = "inline-block h-2.5 w-2.5 rounded-full bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.8)]"; headTxt.innerText = "雲端同步完成";
-                    if(setInd) { setInd.className = "h-3 w-3 rounded-full bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.8)]"; setTxt.innerText = "已連線至 Firebase"; setTxt.classList.replace('text-slate-600', 'text-teal-600'); }
                 } else if (status === 'syncing') {
                     headInd.className = "inline-block h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse"; headTxt.innerText = "同步中...";
                 } else {
                     headInd.className = "inline-block h-2.5 w-2.5 rounded-full bg-rose-500"; headTxt.innerText = "雲端離線";
-                    if(setInd) { setInd.className = "h-3 w-3 rounded-full bg-rose-500"; setTxt.innerText = "連線失敗或無配置"; setTxt.classList.replace('text-teal-600', 'text-rose-600'); }
                 }
             },
 
@@ -1381,12 +1401,17 @@
                     const reader = new FileReader(); reader.readAsDataURL(file);
                     reader.onload = async () => {
                         const base64Data = reader.result.split(',')[1]; const mimeType = file.type; const today = new Date().toISOString().split('T')[0];
-                        const prompt = `System: You are an expert financial receipt parser. Current date: ${today}. Available categories: ${JSON.stringify(this.data.categories)}. Task: Analyze this receipt image and extract transaction details. Match the category to the most appropriate one from the available list. Output strict JSON only. Schema: {"date":"YYYY-MM", "type":"I/CE/CC/AI", "category":"exact name", "amount": number, "note":"store name / items summary"}`;
+                        const prompt = `System: You are an expert financial receipt parser. Current date: ${today}.
+Available categories: ${JSON.stringify(this.data.categories)}.
+Task: Analyze this receipt image and extract transaction details. Match the category to the most appropriate one from the available list.
+Strictly return ONLY a valid JSON object without any Markdown formatting, code blocks, or explanations.
+JSON Schema: {"date":"YYYY-MM", "type":"I/CE/CC/AI", "category":"exact name", "amount": number, "note":"store name / items summary"}
+Example Output: {"date":"2023-10", "type":"CE", "category":"一般支出", "amount": 150, "note":"7-11 咖啡"}`;
                         const payload = { contents: [{ role: "user", parts: [{ text: prompt }, { inlineData: { mimeType: mimeType, data: base64Data } }] }], generationConfig: { responseMimeType: "application/json" } };
                         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${this.data.apiKey}`;
                         const data = await this.fetchGeminiWithBackoff(url, payload);
                         if (data.candidates && data.candidates[0].content) {
-                            const result = JSON.parse(data.candidates[0].content.parts[0].text);
+                            const result = this.parseAIJson(data.candidates[0].content.parts[0].text);
                             document.getElementById('t-date').value = result.date;
                             const combinedVal = `${result.type}|${result.category}`; const sel = document.getElementById('t-unified-category'); sel.value = combinedVal;
                             if(!sel.value) { const opt = document.createElement('option'); opt.value = combinedVal; opt.innerText = result.category + " (AI辨識)"; sel.add(opt); sel.value = combinedVal; }
@@ -1401,12 +1426,18 @@
                 const text = document.getElementById('ai-input-text').value.trim(); if(!text) return this.showAlert("請輸入文字描述");
                 const btn = document.getElementById('btn-smart-parse'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 解析中'; btn.disabled = true;
                 const today = new Date().toISOString().split('T')[0];
-                const prompt = `System: Financial parser. Current: ${today}. Categories: ${JSON.stringify(this.data.categories)}. Input: '${text}'. Extract using available categories if close match. Output JSON schema: {"date":"YYYY-MM", "type":"I/CE/CC/AI", "category":"exact name", "amount": number, "note":"summary"}`;
+                const prompt = `System: Financial parser. Current: ${today}.
+Categories: ${JSON.stringify(this.data.categories)}.
+Input: '${text}'.
+Task: Extract using available categories if close match.
+Strictly return ONLY a valid JSON object without any Markdown formatting, code blocks, or explanations.
+JSON Schema: {"date":"YYYY-MM", "type":"I/CE/CC/AI", "category":"exact name", "amount": number, "note":"summary"}
+Example: Input: '昨天發薪水 50000', Output: {"date":"2023-10", "type":"I", "category":"學校教學薪資", "amount": 50000, "note":"薪水"}`;
                 try {
                     const payload = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } };
                     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${this.data.apiKey}`;
                     const data = await this.fetchGeminiWithBackoff(url, payload);
-                    const result = JSON.parse(data.candidates[0].content.parts[0].text);
+                    const result = this.parseAIJson(data.candidates[0].content.parts[0].text);
                     document.getElementById('t-date').value = result.date;
                     const combinedVal = `${result.type}|${result.category}`; const sel = document.getElementById('t-unified-category'); sel.value = combinedVal;
                     if(!sel.value) { const opt = document.createElement('option'); opt.value = combinedVal; opt.innerText = result.category + " (AI新增)"; sel.add(opt); sel.value = combinedVal; }
@@ -1451,7 +1482,7 @@
                 const { label, data } = this.getFilterData('analysis'); const context = document.getElementById('analysis-context').value; 
                 const historicalSummary = this.data.transactions.slice(0, 50).map(t => `${t.date} [${t.member||'無'}] ${t.category}: ${t.amount}`).join('; ');
                 const assetSummary = JSON.stringify(this.data.assets); const estSummary = JSON.stringify({estimates: this.data.estimates, risks: this.data.risks});
-                const promptText = `Role: Senior Financial Advisor TONY. Task: Analyze financial data for Period: ${label}. User Context (IMPORTANT): "${context}". Current Data: ${JSON.stringify(data)}. Historical Trace: ${historicalSummary}. Assets/Liabilities: ${assetSummary}. Estimates/Risks: ${estSummary}. Requirement: 1. Use # Headers. 2. Analyze Cash Flow. 3. Assess overall Net Worth & Loan Health. 4. Address the Pipeline & Risks. 5. Incorporate Context into advice. 6. Highlight Warnings in > Blockquotes. 7. Language: Traditional Chinese (Taiwan). Format: Markdown.`;
+                const promptText = `Role: Senior Financial Advisor TONY. Task: Analyze financial data for Period: ${label}. User Context (IMPORTANT): "${context}". Current Data: ${JSON.stringify(data)}. Historical Trace: ${historicalSummary}. Assets/Liabilities: ${assetSummary}. Estimates/Risks: ${estSummary}. Requirement: 1. Use # Headers. 2. Analyze Cash Flow. 3. Assess overall Net Worth & Loan Health. 4. Address the Pipeline & Risks. 5. Incorporate Context into advice. 6. Highlight Warnings in > Blockquotes. 7. Language: Traditional Chinese (Taiwan). Strictly output valid Markdown formatting ONLY.`;
                 try {
                     const payload = { contents: [{ parts: [{ text: promptText }] }] };
                     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${this.data.apiKey}`;
@@ -1480,14 +1511,14 @@
                     
                     this.data.chatHistory.push(`User: ${msg}`); this.data.chatHistory.push(`AI: ${reply}`);
                     chatHistory.innerHTML += `<div class="flex flex-col space-y-2"><div class="chat-bubble chat-ai font-medium">${marked.parse(reply)}</div></div>`; chatHistory.scrollTop = chatHistory.scrollHeight;
-                } catch(e) { chatHistory.innerHTML += `<div class="text-rose-500 text-xs p-2 font-bold">Error: ${e.message}</div>`; }
+                } catch(e) { chatHistory.innerHTML += `<div class="text-rose-500 text-xs p-2 font-bold">系統連線錯誤，請稍後重試。</div>`; }
             },
             clearChat: function() { document.getElementById('chat-history').innerHTML = '<div class="flex flex-col space-y-2"><div class="chat-bubble chat-ai shadow-sm font-medium">記錄已清除。請隨時提問！</div></div>'; this.data.chatHistory = []; },
             
             exportReport: function() {
                 if(!this.data.lastAnalysisText && document.getElementById('ai-content').classList.contains('hidden')) return this.showAlert("請先生成分析報告");
                 const { label } = this.getFilterData('analysis'); const content = document.getElementById('ai-content').innerHTML; 
-                const html = `MIME-Version: 1.0\nContent-Type: multipart/related; boundary="----=_NextPart_dummy"\n\n------=_NextPart_dummy\nContent-Type: text/html; charset="utf-8"\nContent-Transfer-Encoding: quoted-printable\n\n<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>財務分析報告</title><style>body { font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; line-height: 1.6; color: #333;} h1 { color: #1e293b; border-bottom: 2px solid #2dd4bf; padding-bottom: 8px;} h2 { background-color: #f0fdfa; color: #0f766e; padding: 8px; border-left: 4px solid #0f766e; } strong { color: #b91c1c; } blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 10px; margin: 10px 0;}</style></head><body><h1>${label} 財務分析報告</h1>${content}<br><br><p style='text-align:center;color:#888;font-size:12px;'>Generated by TONY STUDIO AI Pilot</p></body></html>\n------=_NextPart_dummy--`;
+                const html = `MIME-Version: 1.0\nContent-Type: multipart/related; boundary="----=_NextPart_dummy"\n\n------=_NextPart_dummy\nContent-Type: text/html; charset="utf-8"\nContent-Transfer-Encoding: quoted-printable\n\n<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>財務分析報告</title><style>body { font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; line-height: 1.6; color: #333;} h1 { color: #1e293b; border-bottom: 2px solid #2dd4bf; padding-bottom: 8px;} h2 { background-color: #f0fdfa; color: #0f766e; padding: 8px; border-left: 4px solid #0f766e; } strong { color: #b91c1c; } blockquote { border-left: 4px solid #f59e0b; background: #fffbeb; padding: 10px; margin: 10px 0;}</style></head><body><h1>${label} 財務分析報告</h1>${content}<br><br><p style='text-align:center;color:#888;font-size:12px;'>Generated by TonyStudio (TONY 楊文澤顧問)</p></body></html>\n------=_NextPart_dummy--`;
                 const blob = new Blob([html], { type: 'application/msword;charset=utf-8' });
                 const link = document.createElement("a"); link.href = window.URL.createObjectURL(blob); link.download = `Report_${label}.doc`; document.body.appendChild(link); link.click(); document.body.removeChild(link);
             }
@@ -1554,13 +1585,19 @@
                             };
 
                             // 3. Load user data and init
-                            await this.loadDataFromCloud();
-                            this.initUI(); 
-                            this.updateCloudUI(true);
+                            try {
+                                await this.loadDataFromCloud();
+                                this.initUI(); 
+                                this.updateCloudUI(true);
+                            } catch (loadErr) {
+                                console.error("Cloud load error", loadErr);
+                                this.updateCloudUI(false);
+                                this.initUI();
+                            }
                             resolve(); 
                         } else {
                             // User is null (e.g., first visit, or explicitly signed out)
-                            try { await signInAnonymously(auth); } catch (e) { console.error(e); }
+                            try { await signInAnonymously(auth); } catch (e) { console.error("Anonymous login failed", e); }
                         }
                     });
                 });
